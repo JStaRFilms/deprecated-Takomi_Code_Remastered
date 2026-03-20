@@ -126,7 +126,7 @@ When the user comes back with completed work, use this exact control pattern:
 | 5 | `05_transcript-and-runtime-state.task.md` | Approved | `mode-code` / `vibe-build` | `takomi`, `nextjs-standards` | 2, 4 | `pnpm typecheck`, `pnpm verify:transcript-runtime-state`, and live paused/resume shell sanity checks passed after review fixes | Tasks 06, 07, 08, 12 remain valid; Task 09 still waits on 06, 07, and 08 |
 | 6 | `06_electron-runtime-and-ipc.task.md` | Approved | `mode-code` / `vibe-build` | `takomi`, `nextjs-standards` | 2 | `pnpm typecheck`, `pnpm verify:desktop-runtime-ipc`, and Electron binary boot verification passed after review fixes | Tasks 07, 08, and 12 remain valid; Task 09 still waits on 07 and 08 |
 | 7 | `07_web-local-bridge.task.md` | Approved | `mode-code` / `vibe-build` | `takomi`, `monorepo-management`, `nextjs-standards` | 2 | `pnpm typecheck` and `pnpm verify:web-local-bridge` passed after review fixes for payload parity, WebSocket delivery, CORS, bridge defaults loading, and port overrides | Tasks 08 and 12 remain valid; Task 09 still waits on 08 |
-| 8 | `08_persistence-audit-restore.task.md` | Pending | `mode-code` / `vibe-build` | `takomi`, `nextjs-standards` | 2, 3 | Not started | Review |
+| 8 | `08_persistence-audit-restore.task.md` | Approved | `mode-code` / `vibe-build` | `takomi`, `nextjs-standards` | 2, 3 | `pnpm typecheck` and `pnpm verify:persistence` passed after review fixes for runnable verification wiring and task-record cleanup | Tasks 09 and 12 are now valid |
 | 9 | `09_orchestration-engine.task.md` | Pending | `mode-code` / `vibe-build` | `takomi`, `nextjs-standards` | 2, 5, 6, 7, 8 | Not started | Review |
 | 10 | `10_git-worktree-controls.task.md` | Pending | `mode-code` / `vibe-build` | `takomi`, `nextjs-standards` | 6, 7, 8, 9 | Not started | Review |
 | 11 | `11_interventions-and-recovery.task.md` | Pending | `mode-code` / `vibe-build` | `takomi`, `nextjs-standards` | 5, 6, 7, 9 | Not started | Review |
@@ -161,7 +161,7 @@ When the user comes back with completed work, use this exact control pattern:
 - [x] Task 5 reviewed and approved
 - [x] Task 6 reviewed and approved
 - [x] Task 7 reviewed and approved
-- [ ] Task 8 reviewed and approved
+- [x] Task 8 reviewed and approved
 - [ ] Task 9 reviewed and approved
 - [ ] Task 10 reviewed and approved
 - [ ] Task 11 reviewed and approved
@@ -183,17 +183,18 @@ When the user comes back with completed work, use this exact control pattern:
 - 2026-03-20: Task `05_transcript-and-runtime-state.task.md` required direct review fixes for render-block coverage, transcript-store windowing, runtime presentation mapping, and app-level TypeScript project references before approval.
 - 2026-03-20: Task `06_electron-runtime-and-ipc.task.md` required direct review fixes for Electron binary installation, package export/runtime resolution, real desktop boot wiring, `.agent/Takomi-Agents` default loading, and executable desktop verification before approval.
 - 2026-03-20: Task `07_web-local-bridge.task.md` required direct review fixes for HTTP payload parity with desktop IPC, real `.agent/Takomi-Agents` default loading, WebSocket runtime delivery, valid CORS behavior, honest capability flags, dynamic dev-port overrides, and executable bridge verification before approval.
+- 2026-03-20: Task `08_persistence-audit-restore.task.md` required direct review fixes for repo-level verification wiring (`pnpm verify:persistence`) and task-record cleanup after the builder moved the packet to `completed/` while it still reported `Pending`.
 
 ## Next Tasks Ready To Spawn
 
-1. `08_persistence-audit-restore.task.md`
+1. `09_orchestration-engine.task.md`
 2. `12_runtime-settings-billing-bags.task.md`
 
 ## Current Review Focus
 
-- Task `07` is approved and the web-local transport foundation is no longer blocking orchestration follow-on work
-- Tasks `08` and `12` are the active green-lit queue
-- Task `09` remains locked until Task `08` is also approved
+- Task `08` is approved and persistence is no longer blocking orchestration follow-on work
+- Tasks `09` and `12` are the active green-lit queue
+- Tasks `10` and `11` remain locked until Task `09` is also approved
 
 ## Acceptance Snapshot
 

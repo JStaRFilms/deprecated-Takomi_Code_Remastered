@@ -1,41 +1,72 @@
-import type { AuditEvent, ProjectDescriptor, SessionDescriptor, WorkspaceDescriptor } from '@takomi/contracts';
+import type {
+  AuditEventEnvelope,
+  PersistenceAdapter,
+  ReadModelProvider,
+  RuntimeEventEnvelope,
+  TranscriptPart
+} from '@takomi/contracts';
 
-export interface Repository<TRecord extends { readonly id: string }> {
-  list(): readonly TRecord[];
-  get(id: string): TRecord | undefined;
-  upsert(record: TRecord): void;
-  remove(id: string): void;
-}
+import { createInMemoryEventStore } from './event-store.js';
+import { createInMemoryAuditEventStore } from './audit-store.js';
+import { createInMemoryRestoreSnapshotStore } from './restore-snapshots.js';
+import { createInMemoryInterventionStore } from './intervention-store.js';
+import { createInMemoryTaskGraphStore } from './task-graph-store.js';
+import { createInMemoryOrchestrationSessionStore } from './orchestration-session-store.js';
+import { createInMemoryReadModelProvider } from './read-models.js';
+import { createDesktopPersistenceAdapter } from './desktop-adapter.js';
+import { createWebLocalPersistenceAdapter } from './web-adapter.js';
 
-export function createMemoryRepository<TRecord extends { readonly id: string }>(): Repository<TRecord> {
-  const records = new Map<string, TRecord>();
+// ---------------------------------------------------------------------------
+// In-memory adapter (development / testing)
+// ---------------------------------------------------------------------------
+
+/**
+ * Creates an in-memory persistence adapter suitable for development and tests.
+ * All data lives in process memory and is lost on restart.
+ */
+export function createInMemoryPersistenceAdapter(): PersistenceAdapter {
+  const transcriptEvents = createInMemoryEventStore<TranscriptPart>();
+  const runtimeEvents = createInMemoryEventStore<RuntimeEventEnvelope>();
+  const auditEvents = createInMemoryAuditEventStore();
+  const restoreSnapshots = createInMemoryRestoreSnapshotStore();
+  const interventions = createInMemoryInterventionStore();
+  const taskGraph = createInMemoryTaskGraphStore();
+  const orchestrationSessions = createInMemoryOrchestrationSessionStore();
+
+  const deps = {
+    transcriptEvents,
+    runtimeEvents,
+    auditEvents,
+    restoreSnapshots,
+    interventions,
+    taskGraph,
+    orchestrationSessions
+  };
+
+  const readModels = createInMemoryReadModelProvider(deps);
 
   return {
-    list: () => [...records.values()],
-    get: (id) => records.get(id),
-    upsert: (record) => {
-      records.set(record.id, record);
-    },
-    remove: (id) => {
-      records.delete(id);
-    }
+    ...deps,
+    readModels
   };
 }
 
-export interface PersistenceBundle {
-  readonly workspaces: Repository<WorkspaceDescriptor>;
-  readonly projects: Repository<ProjectDescriptor>;
-  readonly sessions: Repository<SessionDescriptor>;
-  readonly auditEvents: Repository<AuditEvent>;
-}
+// ---------------------------------------------------------------------------
+// Re-export sub-modules
+// ---------------------------------------------------------------------------
 
-export function createPersistenceBundle(): PersistenceBundle {
-  return {
-    workspaces: createMemoryRepository<WorkspaceDescriptor>(),
-    projects: createMemoryRepository<ProjectDescriptor>(),
-    sessions: createMemoryRepository<SessionDescriptor>(),
-    auditEvents: createMemoryRepository<AuditEvent>()
-  };
-}
+export { createInMemoryEventStore } from './event-store.js';
+export { createInMemoryAuditEventStore } from './audit-store.js';
+export { createInMemoryRestoreSnapshotStore } from './restore-snapshots.js';
+export { createInMemoryInterventionStore } from './intervention-store.js';
+export { createInMemoryTaskGraphStore } from './task-graph-store.js';
+export { createInMemoryOrchestrationSessionStore } from './orchestration-session-store.js';
+export { createInMemoryReadModelProvider } from './read-models.js';
+export { createDesktopPersistenceAdapter } from './desktop-adapter.js';
+export { createWebLocalPersistenceAdapter } from './web-adapter.js';
+
+// ---------------------------------------------------------------------------
+// Re-export existing interop
+// ---------------------------------------------------------------------------
 
 export * from './interop.js';

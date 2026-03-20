@@ -1,7 +1,7 @@
 # Orchestrator Summary
 
 **Session ID:** `orch-20260320-takomi-build-01`  
-**Status:** Review-gated orchestration manager active, Tasks 01 through 07 approved  
+**Status:** Review-gated orchestration manager active, Tasks 01 through 08 approved  
 **Mode:** `mode-orchestrator`
 
 ## Operating Mode
@@ -24,7 +24,7 @@ This session now acts as the review gatekeeper:
 | 05 Transcript and runtime state | Approved | Transcript blocks, runtime presentation state, and windowed store behavior verified and patched during review |
 | 06 Electron runtime and IPC | Approved | Electron main/preload, desktop-local runtime host, real default-agent loading, and headless Electron boot verification passed after review fixes |
 | 07 Web local bridge | Approved | Browser-safe local bridge now verifies HTTP capability detection, typed payload parity, defaults loading, one streamed runtime event path, and shared workspace rendering on the web-local root |
-| 08 Persistence, audit, restore | Pending | Waiting on Tasks 02 and 03 |
+| 08 Persistence, audit, restore | Approved | Shared persistence contracts, read models, restore snapshots, and desktop/web-local adapters verified after review cleanup |
 | 09 Orchestration engine | Pending | Waiting on Tasks 02, 05, 06, 07, and 08 |
 | 10 Git and worktree controls | Pending | Waiting on Tasks 06, 07, 08, and 09 |
 | 11 Interventions and recovery | Pending | Waiting on Tasks 05, 06, 07, and 09 |
@@ -36,7 +36,7 @@ This session now acts as the review gatekeeper:
 
 - Desktop build: Electron main/preload/runtime foundation verified with real Electron boot
 - Web-local build: Local bridge foundation verified with executable startup, shared workspace rendering, HTTP bridge requests, and one streamed runtime event path
-- Codex runtime parity: Desktop-local and web-local transport foundations are both verified, but real filesystem, Git, and worktree mutation remain capability-gated stubs
+- Codex runtime parity: Desktop-local and web-local transport foundations are both verified, and both now have matching persistence adapter foundations, but real filesystem, Git, and worktree mutation remain capability-gated stubs
 - V6 workspace fidelity: Approved mock-data shell foundation
 - Interop bundle status: Approved foundation
 
@@ -95,11 +95,17 @@ Task 07 review passed after direct fixes for:
 - dynamic dev-port overrides plus executable verification via `pnpm verify:web-local-bridge`
 - web-local root rendering of the shared Takomi workspace instead of a placeholder bridge-only status card
 
+Task 08 review passed after direct fixes for:
+
+- a real repo-level persistence verification command via `pnpm verify:persistence`
+- task-record cleanup after the builder moved the packet to `completed/` while it still reported `Pending`
+- review confirmation that the in-memory, desktop file-backed, and web-local storage-backed adapters share the same persistence contract surface
+
 ## Current Gate
 
-- Task `07` is approved
-- Tasks `08` and `12` are the active green-lit queue
-- Task `09` is still blocked until `08` is also approved
+- Task `08` is approved
+- Tasks `09` and `12` are the active green-lit queue
+- Tasks `10` and `11` are still blocked until `09` is also approved
 
 ## Risks And Blockers
 
@@ -107,4 +113,4 @@ Task 07 review passed after direct fixes for:
 
 ## Recommended Next Wave
 
-Next best delegation options are `08_persistence-audit-restore.task.md` and `12_runtime-settings-billing-bags.task.md`. Task `08` is the strongest next unlock because it is the last remaining hard dependency before Task `09_orchestration-engine.task.md` can open.
+Next best delegation options are `09_orchestration-engine.task.md` and `12_runtime-settings-billing-bags.task.md`. Task `09` is the strongest next unlock because the orchestration tree, child-session execution, and workspace inheritance flow can now build on approved runtime, bridge, and persistence foundations.

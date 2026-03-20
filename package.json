@@ -16,6 +16,7 @@
     "verify:transcript-runtime-state": "node scripts/verify-transcript-runtime-state.mjs",
     "verify:desktop-runtime-ipc": "node --import tsx/esm scripts/verify-desktop-runtime-ipc.mjs",
     "verify:web-local-bridge": "node scripts/verify-web-local-bridge.mjs",
+    "verify:persistence": "node --import tsx/esm scripts/verify-persistence.mjs",
     "lint": "node scripts/lint.mjs",
     "format": "node scripts/format.mjs",
     "verify": "python scripts/vibe-verify.py"
