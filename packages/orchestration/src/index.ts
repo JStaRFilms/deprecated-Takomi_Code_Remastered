@@ -30,6 +30,33 @@ export type {
   WorktreeReassignmentConfig
 } from './worktree-manager.js';
 
+// Intervention system
+export {
+  InterventionHandler,
+  type InterventionListener,
+  type InterventionHandlerDeps
+} from './intervention-handler.js';
+
+export {
+  DEFAULT_ACTION_POLICY,
+  isActionAllowedForStatus,
+  isActionSupportedForTarget,
+  resolveInterventionScope,
+  validateInterventionRequest,
+  createInterventionOutcome,
+  createInterventionAuditEvent,
+  type ResolvedScope,
+  type ActionPolicyRule
+} from './intervention-policy.js';
+
+// Recovery system
+export {
+  RecoveryManager,
+  type RecoveryListener,
+  type RecoveryManagerDeps,
+  type TriggerRecoveryInput
+} from './recovery-manager.js';
+
 export interface OrchestrationGraph {
   readonly workspace: WorkspaceDescriptor;
   readonly rootSessionId: string;

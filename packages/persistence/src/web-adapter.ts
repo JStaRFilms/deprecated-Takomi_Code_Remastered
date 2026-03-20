@@ -8,6 +8,9 @@ import type {
   InterventionOutcome,
   InterventionRequest,
   InterventionStore,
+  RecoveryDescriptor,
+  RecoveryAction,
+  RecoveryStore,
   OrchestrationSession,
   OrchestrationSessionStore,
   PaginatedResult,
@@ -464,6 +467,15 @@ export function createWebLocalPersistenceAdapter(
     collectionName: 'intervention-outcomes'
   });
 
+  const recoveryDescriptorStore = createWebLocalJsonStore<RecoveryDescriptor>({
+    ...baseConfig,
+    collectionName: 'recovery-descriptors'
+  });
+  const recoveryActionStore = createWebLocalJsonStore<RecoveryAction>({
+    ...baseConfig,
+    collectionName: 'recovery-actions'
+  });
+
   const interventions: InterventionStore = {
     saveRequest: async (req) => { requestStore.save(req); },
     getRequest: async (id) => requestStore.get(id),
@@ -474,7 +486,41 @@ export function createWebLocalPersistenceAdapter(
         .sort((a, b) => b.requestedAt.localeCompare(a.requestedAt));
     },
     saveOutcome: async (out) => { outcomeStore.save(out); },
-    getOutcome: async (requestId) => outcomeStore.get(requestId)
+    getOutcome: async (requestId) => outcomeStore.get(requestId),
+    listByRunId: async (runId) => {
+      return requestStore
+        .list()
+        .filter(r => r.target.runId === runId)
+        .sort((a, b) => b.requestedAt.localeCompare(a.requestedAt));
+    },
+    listBySessionSubtree: async (rootSessionId, sessionIds) => {
+      const idSet = new Set([rootSessionId, ...sessionIds]);
+      return requestStore
+        .list()
+        .filter(r => idSet.has(r.target.sessionId) || (r.target.rootSessionId && idSet.has(r.target.rootSessionId)))
+        .sort((a, b) => b.requestedAt.localeCompare(a.requestedAt));
+    }
+  };
+
+  const recovery: RecoveryStore = {
+    save: async (descriptor) => { recoveryDescriptorStore.save(descriptor); },
+    get: async (id) => recoveryDescriptorStore.get(id),
+    listBySession: async (sessionId) => {
+      return recoveryDescriptorStore
+        .list()
+        .filter(d => d.sessionId === sessionId)
+        .sort((a, b) => b.createdAt.localeCompare(a.createdAt));
+    },
+    listActive: async () => {
+      return recoveryDescriptorStore
+        .list()
+        .filter(d => d.state === 'pending' || d.state === 'in-progress')
+        .sort((a, b) => b.createdAt.localeCompare(a.createdAt));
+    },
+    saveAction: async (action) => { recoveryActionStore.save(action); },
+    listActions: async (recoveryId) => {
+      return recoveryActionStore.list().filter(a => a.recoveryId === recoveryId);
+    }
   };
 
   const nodeStore = createWebLocalJsonStore<TaskGraphNode>({
@@ -612,6 +658,7 @@ export function createWebLocalPersistenceAdapter(
     auditEvents,
     restoreSnapshots,
     interventions,
+    recovery,
     taskGraph,
     orchestrationSessions,
     readModels

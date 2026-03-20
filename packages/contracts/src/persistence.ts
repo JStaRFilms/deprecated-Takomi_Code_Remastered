@@ -11,7 +11,7 @@ import type {
   TaskGraphEdge,
   TaskGraphNode
 } from './task-graph.js';
-import type { InterventionRequest, InterventionOutcome } from './intervention.js';
+import type { InterventionRequest, InterventionOutcome, RecoveryDescriptor, RecoveryAction } from './intervention.js';
 
 // ---------------------------------------------------------------------------
 // Cursor-based pagination
@@ -125,6 +125,21 @@ export interface InterventionStore {
   listRequests(sessionId: string): Promise<readonly InterventionRequest[]>;
   saveOutcome(outcome: InterventionOutcome): Promise<void>;
   getOutcome(requestId: string): Promise<InterventionOutcome | undefined>;
+  listByRunId(runId: string): Promise<readonly InterventionRequest[]>;
+  listBySessionSubtree(rootSessionId: string, sessionIds: readonly string[]): Promise<readonly InterventionRequest[]>;
+}
+
+// ---------------------------------------------------------------------------
+// Recovery Store
+// ---------------------------------------------------------------------------
+
+export interface RecoveryStore {
+  save(descriptor: RecoveryDescriptor): Promise<void>;
+  get(id: string): Promise<RecoveryDescriptor | undefined>;
+  listBySession(sessionId: string): Promise<readonly RecoveryDescriptor[]>;
+  listActive(): Promise<readonly RecoveryDescriptor[]>;
+  saveAction(action: RecoveryAction): Promise<void>;
+  listActions(recoveryId: string): Promise<readonly RecoveryAction[]>;
 }
 
 // ---------------------------------------------------------------------------
@@ -207,6 +222,7 @@ export interface PersistenceAdapter {
   readonly auditEvents: AuditEventStore;
   readonly restoreSnapshots: RestoreSnapshotStore;
   readonly interventions: InterventionStore;
+  readonly recovery: RecoveryStore;
   readonly taskGraph: TaskGraphStore;
   readonly orchestrationSessions: OrchestrationSessionStore;
   readonly readModels: ReadModelProvider;

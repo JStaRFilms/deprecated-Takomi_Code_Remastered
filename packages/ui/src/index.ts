@@ -34,5 +34,15 @@ export type { BranchBadgeProps } from './components/BranchBadge';
 export { WorktreeManager } from './components/WorktreeManager';
 export type { WorktreeManagerProps } from './components/WorktreeManager';
 
+export { InterventionControls, deriveInterventionActions } from './components/InterventionControls';
+export type {
+  InterventionControlsProps,
+  InterventionActionKind,
+  InterventionActionDescriptor
+} from './components/InterventionControls';
+
+export { RecoveryPrompt } from './components/RecoveryPrompt';
+export type { RecoveryPromptProps, RecoveryFlowKind } from './components/RecoveryPrompt';
+
 /* ── Mock Data ── */
 export { mockWorkspace, mockSessions, mockTranscript, mockActiveSessionId } from './mock-data';

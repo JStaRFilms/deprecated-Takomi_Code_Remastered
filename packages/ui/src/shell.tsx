@@ -14,6 +14,23 @@ import { WorkspaceHeader } from './components/WorkspaceHeader';
 import { TranscriptPane } from './components/TranscriptPane';
 import { FloatingComposer } from './components/FloatingComposer';
 import { Inspector } from './components/Inspector';
+import {
+  InterventionControls,
+  deriveInterventionActions,
+  type InterventionActionDescriptor,
+  type InterventionActionKind,
+} from './components/InterventionControls';
+import { RecoveryPrompt } from './components/RecoveryPrompt';
+
+export interface RecoveryPromptState {
+  readonly recoveryId: string;
+  readonly flow: 'continue-build' | 'migrate' | 'reset' | 'escalate';
+  readonly state: 'pending' | 'in-progress' | 'resolved' | 'failed' | 'escalated';
+  readonly triggerDetail?: string;
+  readonly canResume: boolean;
+  readonly canRestore: boolean;
+  readonly snapshotId?: string;
+}
 
 export interface AppShellProps {
   readonly workspace: WorkspaceDescriptor;
@@ -26,6 +43,15 @@ export interface AppShellProps {
   readonly activityLabel?: string | null | undefined;
   readonly headline?: string;
   readonly themeMode?: ThemeMode;
+  readonly runtimeTarget?: 'desktop-local' | 'remote';
+  readonly interventionActions?: readonly InterventionActionDescriptor[];
+  readonly pendingInterventionAction?: InterventionActionKind | undefined;
+  readonly onInterventionAction?: ((action: InterventionActionKind) => void) | undefined;
+  readonly recoveryPrompt?: RecoveryPromptState | null | undefined;
+  readonly onRecoveryResume?: (() => void) | undefined;
+  readonly onRecoveryRestore?: (() => void) | undefined;
+  readonly onRecoveryEscalate?: (() => void) | undefined;
+  readonly onRecoveryDismiss?: (() => void) | undefined;
   /** Collapse sidebars for narrow viewports */
   readonly compactMode?: boolean;
 }
@@ -46,6 +72,15 @@ export function AppShell({
   activityLabel,
   headline: _headline,
   themeMode = 'dark',
+  runtimeTarget = workspace.target === 'desktop' ? 'desktop-local' : 'remote',
+  interventionActions,
+  pendingInterventionAction,
+  onInterventionAction,
+  recoveryPrompt,
+  onRecoveryResume,
+  onRecoveryRestore,
+  onRecoveryEscalate,
+  onRecoveryDismiss,
   compactMode = false,
 }: AppShellProps): ReactElement {
   const theme: ThemeTokens = getTheme(themeMode);
@@ -70,6 +105,29 @@ export function AppShell({
       : resolvedRunStatus === 'paused'
         ? 'Execution is paused pending user approval or action.'
         : 'Waiting for Takomi output.');
+  const resolvedInterventionActions =
+    interventionActions ?? deriveInterventionActions(resolvedRunStatus, runtimeTarget);
+  const resolvedRecoveryPrompt =
+    recoveryPrompt ??
+    (resolvedRunStatus === 'paused'
+      ? {
+          recoveryId: `recovery-${resolvedActiveId ?? 'session'}`,
+          flow: 'continue-build' as const,
+          state: 'pending' as const,
+          triggerDetail: resolvedActivityLabel,
+          canResume: true,
+          canRestore: false,
+        }
+      : resolvedRunStatus === 'failed'
+        ? {
+            recoveryId: `recovery-${resolvedActiveId ?? 'session'}`,
+            flow: 'reset' as const,
+            state: 'pending' as const,
+            triggerDetail: resolvedActivityLabel,
+            canResume: false,
+            canRestore: true,
+          }
+        : null);
 
   // Resolve current worktree context
   const activeWorktree = workspace.worktrees?.find(wt => wt.active || wt.id === workspace.currentWorktreeId);
@@ -142,6 +200,58 @@ export function AppShell({
             blocks={transcriptBlocks}
             sessionName={activeSession?.name ?? 'New Session'}
           />
+
+          <div
+            style={{
+              position: 'absolute',
+              left: '32px',
+              right: compactMode ? '32px' : '360px',
+              bottom: '120px',
+              display: 'flex',
+              flexDirection: 'column',
+              gap: '12px',
+              pointerEvents: 'none',
+            }}
+          >
+            {resolvedRecoveryPrompt && (
+              <div style={{ pointerEvents: 'auto', maxWidth: '560px' }}>
+                <RecoveryPrompt
+                  theme={theme}
+                  sessionId={resolvedActiveId ?? 'session'}
+                  recoveryId={resolvedRecoveryPrompt.recoveryId}
+                  flow={resolvedRecoveryPrompt.flow}
+                  state={resolvedRecoveryPrompt.state}
+                  canResume={resolvedRecoveryPrompt.canResume}
+                  canRestore={resolvedRecoveryPrompt.canRestore}
+                  {...(resolvedRecoveryPrompt.triggerDetail !== undefined
+                    ? { triggerDetail: resolvedRecoveryPrompt.triggerDetail }
+                    : {})}
+                  {...(resolvedRecoveryPrompt.snapshotId !== undefined
+                    ? { snapshotId: resolvedRecoveryPrompt.snapshotId }
+                    : {})}
+                  onResume={onRecoveryResume ?? (() => {})}
+                  onRestore={onRecoveryRestore ?? (() => {})}
+                  onEscalate={onRecoveryEscalate ?? (() => {})}
+                  onDismiss={onRecoveryDismiss ?? (() => {})}
+                />
+              </div>
+            )}
+
+            {resolvedInterventionActions.length > 0 && activeSession && (
+              <div style={{ pointerEvents: 'auto' }}>
+                <InterventionControls
+                  theme={theme}
+                  sessionId={activeSession.id}
+                  sessionStatus={resolvedRunStatus}
+                  actions={resolvedInterventionActions}
+                  onAction={onInterventionAction ?? (() => {})}
+                  {...(pendingInterventionAction !== undefined
+                    ? { pendingAction: pendingInterventionAction }
+                    : {})}
+                />
+              </div>
+            )}
+          </div>
 
           <FloatingComposer
             theme={theme}

@@ -7,7 +7,7 @@
     "outDir": "./dist",
     "rootDir": "./src"
   },
-  "references": [{ "path": "../contracts" }],
+  "references": [{ "path": "../contracts" }, { "path": "../runtime-codex" }],
   "include": ["src/**/*.ts"],
   "exclude": ["dist", "node_modules"]
 }

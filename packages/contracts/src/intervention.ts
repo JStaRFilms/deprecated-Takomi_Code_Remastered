@@ -77,3 +77,40 @@ export interface InterventionOutcome<TAction extends InterventionAction = Interv
   readonly detail?: string;
   readonly auditEventId?: string;
 }
+
+// ---------------------------------------------------------------------------
+// Recovery Types
+// ---------------------------------------------------------------------------
+
+export const RECOVERY_FLOWS = ['continue-build', 'migrate', 'reset', 'escalate'] as const;
+export type RecoveryFlow = (typeof RECOVERY_FLOWS)[number];
+
+export const RECOVERY_STATES = ['pending', 'in-progress', 'resolved', 'failed', 'escalated'] as const;
+export type RecoveryState = (typeof RECOVERY_STATES)[number];
+
+export interface RecoveryDescriptor {
+  readonly id: string;
+  readonly sessionId: string;
+  readonly runId?: string;
+  readonly flow: RecoveryFlow;
+  readonly state: RecoveryState;
+  readonly triggeredBy: 'intervention' | 'failure' | 'timeout' | 'manual';
+  readonly triggerDetail?: string;
+  readonly interventionId?: string;
+  readonly snapshotId?: string;
+  readonly createdAt: string;
+  readonly resolvedAt?: string;
+  readonly metadata?: Record<string, unknown>;
+}
+
+export interface RecoveryAction {
+  readonly id: string;
+  readonly recoveryId: string;
+  readonly action: 'resume' | 'restart' | 'reroute' | 'escalate' | 'snapshot-restore';
+  readonly targetSessionId?: string;
+  readonly targetRunId?: string;
+  readonly snapshotId?: string;
+  readonly performedAt: string;
+  readonly result: 'success' | 'failure';
+  readonly detail?: string;
+}

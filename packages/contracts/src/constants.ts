@@ -75,6 +75,15 @@ export const INTERVENTION_AUDIT_EVENT_KINDS = [
 ] as const;
 export type InterventionAuditEventKind = (typeof INTERVENTION_AUDIT_EVENT_KINDS)[number];
 
+export const RECOVERY_AUDIT_EVENT_KINDS = [
+  'recovery.triggered',
+  'recovery.action_performed',
+  'recovery.resolved',
+  'recovery.failed',
+  'recovery.escalated'
+] as const;
+export type RecoveryAuditEventKind = (typeof RECOVERY_AUDIT_EVENT_KINDS)[number];
+
 export const BILLING_AUDIT_EVENT_KINDS = [
   'billing.checkout_started',
   'billing.entitlement_activated',
@@ -93,6 +102,7 @@ export const AUDIT_EVENT_KINDS = [
   ...NORMALIZED_RUNTIME_EVENT_KINDS,
   ...WORKSPACE_AUDIT_EVENT_KINDS,
   ...INTERVENTION_AUDIT_EVENT_KINDS,
+  ...RECOVERY_AUDIT_EVENT_KINDS,
   ...BILLING_AUDIT_EVENT_KINDS,
   ...BAGS_AUDIT_EVENT_KINDS
 ] as const;

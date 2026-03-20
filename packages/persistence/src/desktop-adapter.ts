@@ -8,6 +8,9 @@ import type {
   InterventionOutcome,
   InterventionRequest,
   InterventionStore,
+  RecoveryDescriptor,
+  RecoveryAction,
+  RecoveryStore,
   OrchestrationSession,
   OrchestrationSessionStore,
   PaginatedResult,
@@ -439,6 +442,15 @@ export function createDesktopPersistenceAdapter(
     collectionName: 'intervention-outcomes'
   });
 
+  const recoveryDescriptorStore = createFileBackedJsonStore<RecoveryDescriptor>({
+    ...baseConfig,
+    collectionName: 'recovery-descriptors'
+  });
+  const recoveryActionStore = createFileBackedJsonStore<RecoveryAction>({
+    ...baseConfig,
+    collectionName: 'recovery-actions'
+  });
+
   const nodeStore = createFileBackedJsonStore<TaskGraphNode>({
     ...baseConfig,
     collectionName: 'task-graph-nodes'
@@ -467,7 +479,42 @@ export function createDesktopPersistenceAdapter(
         .sort((a, b) => b.requestedAt.localeCompare(a.requestedAt));
     },
     saveOutcome: (out) => interventionOutcomeStore.save(out),
-    getOutcome: (requestId) => interventionOutcomeStore.get(requestId)
+    getOutcome: (requestId) => interventionOutcomeStore.get(requestId),
+    listByRunId: async (runId) => {
+      const all = await interventionStore.list();
+      return all
+        .filter(r => r.target.runId === runId)
+        .sort((a, b) => b.requestedAt.localeCompare(a.requestedAt));
+    },
+    listBySessionSubtree: async (rootSessionId, sessionIds) => {
+      const idSet = new Set([rootSessionId, ...sessionIds]);
+      const all = await interventionStore.list();
+      return all
+        .filter(r => idSet.has(r.target.sessionId) || (r.target.rootSessionId && idSet.has(r.target.rootSessionId)))
+        .sort((a, b) => b.requestedAt.localeCompare(a.requestedAt));
+    }
+  };
+
+  const recovery: RecoveryStore = {
+    save: (descriptor) => recoveryDescriptorStore.save(descriptor),
+    get: (id) => recoveryDescriptorStore.get(id),
+    listBySession: async (sessionId) => {
+      const all = await recoveryDescriptorStore.list();
+      return all
+        .filter(d => d.sessionId === sessionId)
+        .sort((a, b) => b.createdAt.localeCompare(a.createdAt));
+    },
+    listActive: async () => {
+      const all = await recoveryDescriptorStore.list();
+      return all
+        .filter(d => d.state === 'pending' || d.state === 'in-progress')
+        .sort((a, b) => b.createdAt.localeCompare(a.createdAt));
+    },
+    saveAction: (action) => recoveryActionStore.save(action),
+    listActions: async (recoveryId) => {
+      const all = await recoveryActionStore.list();
+      return all.filter(a => a.recoveryId === recoveryId);
+    }
   };
 
   const taskGraph: TaskGraphStore = {
@@ -591,6 +638,7 @@ export function createDesktopPersistenceAdapter(
     auditEvents,
     restoreSnapshots,
     interventions,
+    recovery,
     taskGraph,
     orchestrationSessions,
     readModels
