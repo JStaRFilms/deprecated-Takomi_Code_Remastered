@@ -14,6 +14,7 @@ import type {
 } from '@takomi/contracts';
 
 export * from './state-map.js';
+export * from './remote-transport.js';
 
 export interface CodexRuntimeManager {
   readonly kind: 'desktop-local' | 'remote';

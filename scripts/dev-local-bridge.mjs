@@ -1,28 +1,27 @@
-import { readJson, startStatusServer } from './dev-common.mjs';
+import { readJson } from './dev-common.mjs';
 
 const workspace = await readJson('package.json');
+const bridgePort = Number(process.env['TAKOMI_BRIDGE_PORT'] ?? '4545');
+const bridgeHost = process.env['TAKOMI_BRIDGE_HOST'] ?? '127.0.0.1';
 
-await startStatusServer({
-  name: 'takomi-local-bridge',
-  port: 4545,
-  title: 'Takomi Local Bridge',
-  subtitle: 'Local bridge stub for browser-local development.',
-  details: [
-    { label: 'Workspace', value: workspace.name },
-    { label: 'Command', value: 'pnpm --filter @takomi/local-bridge dev' },
-    { label: 'Role', value: 'Bundled local bridge for web-local runs' }
-  ],
-  routes: {
-    '/bridge': async () => ({
-      status: 200,
-      headers: { 'content-type': 'application/json; charset=utf-8' },
-      body: JSON.stringify({
-        bridge: 'local',
-        transport: 'http',
-        mode: 'web-local'
-      }, null, 2)
-    })
-  }
+// Start the actual local bridge server
+const { launchBridge } = await import('../apps/local-bridge/src/index.ts');
+
+const bridgeResult = await launchBridge({
+  port: bridgePort,
+  host: bridgeHost
+});
+
+console.log(`[takomi-local-bridge] Workspace: ${workspace.name}`);
+console.log(`[takomi-local-bridge] Command: pnpm --filter @takomi/local-bridge dev`);
+console.log(`[takomi-local-bridge] Role: Bundled local bridge for web-local runs`);
+console.log(`[takomi-local-bridge] HTTP: http://${bridgeHost}:${bridgePort}/bridge`);
+console.log(`[takomi-local-bridge] WS:   ws://${bridgeHost}:${bridgePort}/ws`);
+
+process.on('SIGINT', async () => {
+  console.log('\n[takomi-local-bridge] Shutting down...');
+  await bridgeResult.stop();
+  process.exit(0);
 });
 
 await new Promise(() => {});

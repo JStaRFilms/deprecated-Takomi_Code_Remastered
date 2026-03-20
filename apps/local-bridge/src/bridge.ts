@@ -1,4 +1,4 @@
-import { createLocalBridgeDescriptor } from './index';
+import { createLocalBridgeDescriptor } from './descriptor.js';
 
 export function createBridgeStatus() {
   return {

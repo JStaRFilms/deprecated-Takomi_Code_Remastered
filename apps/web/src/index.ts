@@ -1,5 +1,6 @@
 import type { ReactElement } from 'react';
 import type {
+  BridgeCapabilityReport,
   NormalizedRuntimeEvent,
   SessionDescriptor,
   TranscriptPart,
@@ -19,6 +20,9 @@ import {
   mockSessions,
   mockActiveSessionId,
 } from '@takomi/ui';
+import type { TransportMode } from './transport.js';
+
+export type { TransportMode } from './transport.js';
 
 export interface WebAppBootstrap {
   readonly workspace: WorkspaceDescriptor;
@@ -28,6 +32,13 @@ export interface WebAppBootstrap {
   readonly transcriptBlocks?: readonly TranscriptRenderBlock[];
   readonly activeSessionId?: string;
   readonly themeMode?: ThemeMode;
+  readonly transport: WebTransportBootstrap;
+}
+
+export interface WebTransportBootstrap {
+  readonly mode: TransportMode;
+  readonly bridgeAvailable: boolean;
+  readonly capabilities: BridgeCapabilityReport | null;
 }
 
 export function createWebAppBootstrap(data?: Partial<WebAppBootstrap>): WebAppBootstrap {
@@ -54,6 +65,11 @@ export function createWebAppBootstrap(data?: Partial<WebAppBootstrap>): WebAppBo
       materializeTranscript(activeSessionId, transcript, runtimeEvents),
     activeSessionId,
     themeMode: data?.themeMode ?? 'dark',
+    transport: data?.transport ?? {
+      mode: 'browser-only',
+      bridgeAvailable: false,
+      capabilities: null
+    }
   };
 }
 

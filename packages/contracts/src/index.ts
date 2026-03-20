@@ -10,3 +10,5 @@ export * from './agent-definitions.js';
 export * from './runtime.js';
 export * from './ipc.js';
 export * from './schemas.js';
+export * from './bridge.js';
+export * from './persistence.js';

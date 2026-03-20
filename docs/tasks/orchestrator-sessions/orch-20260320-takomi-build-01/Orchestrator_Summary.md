@@ -1,7 +1,7 @@
 # Orchestrator Summary
 
 **Session ID:** `orch-20260320-takomi-build-01`  
-**Status:** Review-gated orchestration manager active, Tasks 01 through 06 approved  
+**Status:** Review-gated orchestration manager active, Tasks 01 through 07 approved  
 **Mode:** `mode-orchestrator`
 
 ## Operating Mode
@@ -23,7 +23,7 @@ This session now acts as the review gatekeeper:
 | 04 Shared v6 shell | Approved | Shared v6 workspace shell is now rendering in both live mounts with mock data and passing verification |
 | 05 Transcript and runtime state | Approved | Transcript blocks, runtime presentation state, and windowed store behavior verified and patched during review |
 | 06 Electron runtime and IPC | Approved | Electron main/preload, desktop-local runtime host, real default-agent loading, and headless Electron boot verification passed after review fixes |
-| 07 Web local bridge | Pending | Waiting on Task 02 |
+| 07 Web local bridge | Approved | Browser-safe local bridge now verifies HTTP capability detection, typed payload parity, defaults loading, one streamed runtime event path, and shared workspace rendering on the web-local root |
 | 08 Persistence, audit, restore | Pending | Waiting on Tasks 02 and 03 |
 | 09 Orchestration engine | Pending | Waiting on Tasks 02, 05, 06, 07, and 08 |
 | 10 Git and worktree controls | Pending | Waiting on Tasks 06, 07, 08, and 09 |
@@ -35,8 +35,8 @@ This session now acts as the review gatekeeper:
 ## Build Status
 
 - Desktop build: Electron main/preload/runtime foundation verified with real Electron boot
-- Web-local build: Scaffolded
-- Codex runtime parity: Desktop-local mock host verified; remote path still scaffolded
+- Web-local build: Local bridge foundation verified with executable startup, shared workspace rendering, HTTP bridge requests, and one streamed runtime event path
+- Codex runtime parity: Desktop-local and web-local transport foundations are both verified, but real filesystem, Git, and worktree mutation remain capability-gated stubs
 - V6 workspace fidelity: Approved mock-data shell foundation
 - Interop bundle status: Approved foundation
 
@@ -85,11 +85,21 @@ Task 06 review passed after direct fixes for:
 - `.agent/Takomi-Agents` defaults loading through a typed desktop bridge payload instead of placeholder data
 - executable verification via `pnpm verify:desktop-runtime-ipc`
 
+Task 07 review passed after direct fixes for:
+
+- bridge HTTP payload parity with the approved desktop IPC shapes
+- real `.agent/Takomi-Agents` defaults loading through the local bridge instead of placeholder data
+- working WebSocket upgrade, subscription, and runtime event fan-out behavior
+- valid single-origin CORS handling for the browser path
+- honest capability reporting for filesystem, Git, and worktree operations that are still stubbed
+- dynamic dev-port overrides plus executable verification via `pnpm verify:web-local-bridge`
+- web-local root rendering of the shared Takomi workspace instead of a placeholder bridge-only status card
+
 ## Current Gate
 
-- Task `06` is approved
-- Tasks `07`, `08`, and `12` are the active green-lit queue
-- Task `09` is still blocked until `07` and `08` are also approved
+- Task `07` is approved
+- Tasks `08` and `12` are the active green-lit queue
+- Task `09` is still blocked until `08` is also approved
 
 ## Risks And Blockers
 
@@ -97,4 +107,4 @@ Task 06 review passed after direct fixes for:
 
 ## Recommended Next Wave
 
-Next best delegation options are `07_web-local-bridge.task.md`, `08_persistence-audit-restore.task.md`, and `12_runtime-settings-billing-bags.task.md`. Task `07` is the strongest next unlock because it moves the browser shell closer to parity with the now-approved desktop runtime path.
+Next best delegation options are `08_persistence-audit-restore.task.md` and `12_runtime-settings-billing-bags.task.md`. Task `08` is the strongest next unlock because it is the last remaining hard dependency before Task `09_orchestration-engine.task.md` can open.
