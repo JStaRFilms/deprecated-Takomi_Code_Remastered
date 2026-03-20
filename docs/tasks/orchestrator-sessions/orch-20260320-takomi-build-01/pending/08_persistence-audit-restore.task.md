@@ -57,12 +57,14 @@ Implement append-first persistence, restore snapshots, audit logs, and read mode
 - Implement restore snapshots and read models
 - Implement audit event persistence for runs, interventions, worktree changes, billing state changes, and verification state changes
 - Support both desktop and web-local adapters behind shared repository interfaces
+- Leave room in the persistence model for app-owned Takomi agent definitions and user overrides, even if the full editor lands in a later task
 
 ## Out Of Scope
 
 - Final long-term cloud sync design
 - Advanced analytics
 - Full cross-device sync
+- Full Takomi brain editor UX
 
 ## Definition Of Done
 

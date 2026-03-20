@@ -1,0 +1,28 @@
+{
+  "name": "@takomi/web",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    }
+  },
+  "scripts": {
+    "dev": "node ../../scripts/dev-web.mjs",
+    "dev:local": "node ../../scripts/dev-web-local.mjs",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "lint": "node ../../scripts/lint.mjs",
+    "format": "node ../../scripts/format.mjs"
+  },
+  "dependencies": {
+    "@takomi/contracts": "workspace:*",
+    "@takomi/orchestration": "workspace:*",
+    "@takomi/persistence": "workspace:*",
+    "@takomi/runtime-codex": "workspace:*",
+    "@takomi/ui": "workspace:*"
+  }
+}

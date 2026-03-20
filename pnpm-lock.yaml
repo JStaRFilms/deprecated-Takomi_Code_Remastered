@@ -1,0 +1,92 @@
+lockfileVersion: '9.0'
+
+settings:
+  autoInstallPeers: true
+  excludeLinksFromLockfile: false
+
+importers:
+
+  .:
+    devDependencies:
+      typescript:
+        specifier: ^5.9.3
+        version: 5.9.3
+
+  apps/desktop:
+    dependencies:
+      '@takomi/contracts':
+        specifier: workspace:*
+        version: link:../../packages/contracts
+      '@takomi/orchestration':
+        specifier: workspace:*
+        version: link:../../packages/orchestration
+      '@takomi/persistence':
+        specifier: workspace:*
+        version: link:../../packages/persistence
+      '@takomi/runtime-codex':
+        specifier: workspace:*
+        version: link:../../packages/runtime-codex
+      '@takomi/ui':
+        specifier: workspace:*
+        version: link:../../packages/ui
+
+  apps/local-bridge:
+    dependencies:
+      '@takomi/contracts':
+        specifier: workspace:*
+        version: link:../../packages/contracts
+
+  apps/web:
+    dependencies:
+      '@takomi/contracts':
+        specifier: workspace:*
+        version: link:../../packages/contracts
+      '@takomi/orchestration':
+        specifier: workspace:*
+        version: link:../../packages/orchestration
+      '@takomi/persistence':
+        specifier: workspace:*
+        version: link:../../packages/persistence
+      '@takomi/runtime-codex':
+        specifier: workspace:*
+        version: link:../../packages/runtime-codex
+      '@takomi/ui':
+        specifier: workspace:*
+        version: link:../../packages/ui
+
+  packages/contracts: {}
+
+  packages/orchestration:
+    dependencies:
+      '@takomi/contracts':
+        specifier: workspace:*
+        version: link:../contracts
+
+  packages/persistence:
+    dependencies:
+      '@takomi/contracts':
+        specifier: workspace:*
+        version: link:../contracts
+
+  packages/runtime-codex:
+    dependencies:
+      '@takomi/contracts':
+        specifier: workspace:*
+        version: link:../contracts
+
+  packages/ui:
+    dependencies:
+      '@takomi/contracts':
+        specifier: workspace:*
+        version: link:../contracts
+
+packages:
+
+  typescript@5.9.3:
+    resolution: {integrity: sha512-jl1vZzPDinLr9eUt3J/t7V6FgNEw9QjvBPdysz9KfQDD41fQrC2Y4vKQdiaUpFT4bXlb1RHhLpp8wtm6M5TgSw==}
+    engines: {node: '>=14.17'}
+    hasBin: true
+
+snapshots:
+
+  typescript@5.9.3: {}

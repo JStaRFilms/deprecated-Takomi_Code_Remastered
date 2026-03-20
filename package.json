@@ -1,0 +1,21 @@
+{
+  "name": "takomi-code",
+  "private": true,
+  "packageManager": "pnpm@10.0.0",
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "dev:desktop": "node scripts/dev-desktop.mjs",
+    "dev:web": "node scripts/dev-web.mjs",
+    "dev:web-local": "node scripts/dev-web-local.mjs",
+    "typecheck": "node scripts/typecheck.mjs",
+    "lint": "node scripts/lint.mjs",
+    "format": "node scripts/format.mjs",
+    "verify": "python scripts/vibe-verify.py"
+  },
+  "devDependencies": {
+    "typescript": "^5.9.3"
+  }
+}

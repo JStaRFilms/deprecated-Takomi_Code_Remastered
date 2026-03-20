@@ -53,6 +53,10 @@ Implement the Takomi orchestration engine that owns parent and child sessions, t
 - `docs/features/chat-session-core.md`
 - `docs/Project_Requirements.md`
 - `docs/PLAN.md`
+- `.agent/Takomi-Agents/custom_modes.yaml`
+- `.agent/Takomi-Agents/vibe-orchestrator.yaml`
+- `.agent/Takomi-Agents/vibe-code.yaml`
+- `.agent/Takomi-Agents/vibe-review.yaml`
 
 ## Scope
 
@@ -61,12 +65,14 @@ Implement the Takomi orchestration engine that owns parent and child sessions, t
 - Preserve same-workspace inheritance by default
 - Support background child execution without blocking the parent workspace
 - Correlate tasks, sessions, runs, and artifacts consistently
+- Add the loader path or internal service that treats `.agent/Takomi-Agents/` as the current source of default mode and agent definitions for orchestration behavior
 
 ## Out Of Scope
 
 - Final recovery action UI
 - Full billing or verification logic
 - Cross-team collaboration features
+- Full end-user editing UI for the Takomi brain
 
 ## Definition Of Done
 
@@ -74,6 +80,7 @@ Implement the Takomi orchestration engine that owns parent and child sessions, t
 - Parent and child session lineage survives reload
 - Background child runs remain visible without taking over the active workspace
 - Runtime ownership and artifact correlation remain stable across runtime targets
+- Default agent and mode definitions can be loaded from the current Takomi defaults path or a mapped internal equivalent
 
 ## Expected Artifacts
 
@@ -98,3 +105,4 @@ Implement the Takomi orchestration engine that owns parent and child sessions, t
 
 - Note any intentionally simplified scheduling rules
 - Record how runtime ownership IDs are assigned and preserved
+- Record how the engine resolves default agent definitions and how later user overrides should layer on top

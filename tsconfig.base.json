@@ -1,0 +1,32 @@
+{
+  "compilerOptions": {
+    "target": "ES2022",
+    "module": "ESNext",
+    "moduleResolution": "Bundler",
+    "lib": ["ES2022", "DOM", "DOM.Iterable"],
+    "strict": true,
+    "noImplicitOverride": true,
+    "noUncheckedIndexedAccess": true,
+    "exactOptionalPropertyTypes": true,
+    "noPropertyAccessFromIndexSignature": true,
+    "forceConsistentCasingInFileNames": true,
+    "skipLibCheck": true,
+    "useUnknownInCatchVariables": true,
+    "verbatimModuleSyntax": true,
+    "resolveJsonModule": true,
+    "allowSyntheticDefaultImports": true,
+    "esModuleInterop": true,
+    "jsx": "preserve",
+    "baseUrl": ".",
+    "paths": {
+      "@takomi/contracts": ["packages/contracts/src/index.ts"],
+      "@takomi/orchestration": ["packages/orchestration/src/index.ts"],
+      "@takomi/runtime-codex": ["packages/runtime-codex/src/index.ts"],
+      "@takomi/persistence": ["packages/persistence/src/index.ts"],
+      "@takomi/ui": ["packages/ui/src/index.ts"],
+      "@takomi/desktop": ["apps/desktop/src/index.ts"],
+      "@takomi/web": ["apps/web/src/index.ts"],
+      "@takomi/local-bridge": ["apps/local-bridge/src/index.ts"]
+    }
+  }
+}

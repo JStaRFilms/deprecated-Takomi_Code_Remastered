@@ -52,6 +52,8 @@ Implement runtime target settings, capability surfacing, Paystack entitlement fl
 - `docs/features/bags-integration-and-verification.md`
 - `docs/mockups/v6-runtime-settings.html`
 - `docs/mockups/v6-billing-verification.html`
+- `.agent/Takomi-Agents/custom_modes.yaml`
+- `.agent/Takomi-Agents/kilo-code-settings.json`
 
 ## Scope
 
@@ -60,12 +62,14 @@ Implement runtime target settings, capability surfacing, Paystack entitlement fl
 - Implement Paystack billing and entitlement success-path flow
 - Implement Bags token linkage and verification readiness UI and state
 - Ensure audit events are recorded for settings and integration changes
+- Add the first app-facing settings surface or management hook for Takomi default agent definitions, at minimum exposing the current source/defaults relationship and preparing for end-user configurability
 
 ## Out Of Scope
 
 - Fee sharing logic
 - Advanced billing analytics
 - Full production-grade verification ops beyond the documented readiness scope
+- Full-featured visual mode prompt editor unless it fits naturally in the task slice
 
 ## Definition Of Done
 
@@ -73,6 +77,7 @@ Implement runtime target settings, capability surfacing, Paystack entitlement fl
 - Paystack and Bags flows exist on the documented success path
 - Billing and verification state changes are auditable
 - UI language remains shared across desktop and web-local
+- The product has an explicit concept of default Takomi agent definitions and does not bury them as invisible hardcoded internals
 
 ## Expected Artifacts
 
@@ -99,3 +104,4 @@ Implement runtime target settings, capability surfacing, Paystack entitlement fl
 
 - Note any provider sandbox assumptions
 - Record any intentionally deferred failure-path UX
+- Record what part of the Takomi brain is now configurable versus still sourced directly from `.agent/Takomi-Agents/`

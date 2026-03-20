@@ -1,6 +1,6 @@
 # Task 01: Monorepo Foundation
 
-**Status:** Pending  
+**Status:** Completed  
 **Priority:** High  
 **Mode / Workflow:** `mode-code` / `vibe-build`
 
@@ -50,6 +50,8 @@ Create the `pnpm` monorepo foundation for Takomi Code with app and package bound
 - `docs/architecture/system_architecture.md`
 - `docs/architecture/solution_scaffold_decisions.md`
 - `docs/Builder_Prompt.md`
+- `.agent/Takomi-Agents/custom_modes.yaml`
+- `.agent/Takomi-Agents/kilo-code-settings.json`
 
 ## Scope
 
@@ -58,12 +60,14 @@ Create the `pnpm` monorepo foundation for Takomi Code with app and package bound
 - Create `packages/contracts`, `packages/orchestration`, `packages/runtime-codex`, `packages/persistence`, and `packages/ui`
 - Add strict TS configuration, shared lint/format scripts, and baseline dev commands
 - Add `pnpm dev:desktop`, `pnpm dev:web`, and `pnpm dev:web-local`
+- Preserve `.agent/Takomi-Agents/` as an intentional product input and make sure the scaffold leaves a clean place for future default-agent ingestion rather than burying or ignoring it
 
 ## Out Of Scope
 
 - Feature implementation inside the packages
 - Final UI fidelity
 - Runtime contract contents beyond what is required for scaffold references
+- Full in-app editor for Takomi agent definitions
 
 ## Definition Of Done
 
@@ -80,6 +84,7 @@ Create the `pnpm` monorepo foundation for Takomi Code with app and package bound
 - Shared TS config files
 - Initial app entrypoints and placeholder package exports
 - Short implementation note in the task result or commit summary
+- A short note about where future app-owned Takomi brain/config ingestion should live
 
 ## Suggested Files To Create Or Modify
 
@@ -94,6 +99,7 @@ Create the `pnpm` monorepo foundation for Takomi Code with app and package bound
 - `packages/runtime-codex/*`
 - `packages/persistence/*`
 - `packages/ui/*`
+- `.agent/Takomi-Agents/*` only if references or metadata need to be added without mutating the defaults
 
 ## Verification
 
@@ -101,9 +107,11 @@ Create the `pnpm` monorepo foundation for Takomi Code with app and package bound
 - Run root typecheck successfully
 - Run each declared dev command far enough to verify startup wiring
 - Confirm path aliases and workspace references resolve
+- Confirm the scaffold does not accidentally exclude `.agent/Takomi-Agents/` from future app access patterns
 
 ## Handoff Checklist
 
 - Note any scaffold assumptions
 - Record any placeholder entrypoints added for later tasks
 - Call out anything intentionally stubbed so later tasks do not mistake it for completed feature work
+- Record how the scaffold expects to ingest default Takomi agent definitions later

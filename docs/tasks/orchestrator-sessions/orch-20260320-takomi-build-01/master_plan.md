@@ -2,11 +2,27 @@
 
 **Session ID:** `orch-20260320-takomi-build-01`  
 **Mode:** `mode-orchestrator`  
+**Operating Style:** Review-gated orchestration manager  
 **Mission:** Coordinate the full Takomi Code Electron + React + Codex SDK build through narrow delegated tasks, strict dependency gates, and the standard Takomi execution loop.
 
 ## Summary
 
 This orchestration session treats the existing repository documentation as the locked foundation for implementation. Design generation is out of scope. The orchestrator should delegate the build in small slices, enforce the review gate between slices, and keep the implementation aligned with the v6 workspace UX and the Codex SDK runtime contract.
+
+An additional product-critical input exists in `.agent/Takomi-Agents/`. This folder contains the current default Takomi agent and mode definitions that act as the app's starting brain. These files are user-authored defaults, should be treated as important product inputs, and must be preserved as configurable defaults rather than discarded as development-only artifacts.
+
+## Manager Protocol
+
+This session is now run as a review-gated orchestration manager:
+
+1. The user delegates one allowed task to a builder agent.
+2. The user returns here and says the task is done.
+3. The orchestration manager reviews the implementation against the task file, repo state, docs, and verification evidence.
+4. If issues are found, the orchestration manager patches the repo directly where appropriate, reruns checks, and updates session records.
+5. If the task still does not meet its definition of done, the orchestration manager withholds approval and names the remaining blockers clearly.
+6. Only after the task passes review does the orchestration manager give the green light for the next valid task.
+
+The orchestration manager does not unlock later tasks based only on a claim of completion. Approval is evidence-based and dependency-aware.
 
 ## Source Of Truth
 
@@ -16,6 +32,11 @@ This orchestration session treats the existing repository documentation as the l
 - `docs/mockups/v6-session-workspace.html`
 - `docs/mockups/takomi_chat_states_v6.html`
 - `docs/Orchestrator_Review_Workflow.md`
+- `.agent/Takomi-Agents/custom_modes.yaml`
+- `.agent/Takomi-Agents/vibe-orchestrator.yaml`
+- `.agent/Takomi-Agents/vibe-code.yaml`
+- `.agent/Takomi-Agents/vibe-review.yaml`
+- `.agent/Takomi-Agents/kilo-code-settings.json`
 
 ## Skills Registry
 
@@ -59,6 +80,13 @@ These contracts must be treated as early locks rather than drift-prone implement
 
 Desktop IPC and web-local bridge responses must stay shape-compatible wherever the action is logically the same.
 
+## Additional Product Constraint
+
+- `.agent/Takomi-Agents/` is the current default Takomi brain/config source.
+- The app should eventually ingest these defaults into its own configurable state model.
+- End users must be able to customize the effective agent definitions later, but the files in `.agent/Takomi-Agents/` remain the initial source defaults for now.
+- Early implementation tasks must not hardcode a conflicting agent-mode model that would make this migration painful later.
+
 ## Standard Delegation Loop
 
 Every task in this session follows this loop:
@@ -73,11 +101,25 @@ Every task in this session follows this loop:
 8. If review fails, reopen the same task and fix it.
 9. Only after review passes, move the task to `completed/` and unlock the next dependent task.
 
+## User Return Protocol
+
+When the user comes back with completed work, use this exact control pattern:
+
+1. Confirm the submitted task is currently allowed by the dependency graph.
+2. Review the task file first, then inspect the changed code and docs.
+3. Run the most relevant verification commands for that task.
+4. Patch implementation or documentation issues directly when reasonable.
+5. Update the session status to reflect one of:
+   - `Approved`
+   - `Changes requested`
+   - `Blocked`
+6. Give the next green-lit task only if the reviewed task is approved.
+
 ## Task Table
 
 | # | Task | Status | Mode / Workflow | Skills | Depends On | Verification | Next Gate |
 |---|---|---|---|---|---|---|---|
-| 1 | `01_monorepo-foundation.task.md` | Pending | `mode-code` / `vibe-build` | `takomi`, `monorepo-management`, `nextjs-standards` | none | Not started | Review |
+| 1 | `01_monorepo-foundation.task.md` | Approved | `mode-code` / `vibe-build` | `takomi`, `monorepo-management`, `nextjs-standards` | none | Workspace checks, dev wiring, and verification fallback passed | Task 02 |
 | 2 | `02_contracts-and-schema-lock.task.md` | Pending | `mode-code` / `vibe-build` | `takomi`, `nextjs-standards` | 1 | Not started | Review |
 | 3 | `03_session-bundle-interop.task.md` | Pending | `mode-code` / `vibe-build` | `takomi`, `nextjs-standards` | 2 | Not started | Review |
 | 4 | `04_shared-v6-shell.task.md` | Pending | `mode-code` / `vibe-build` | `takomi`, `frontend-design`, `nextjs-standards` | 1, 2 | Not started | Review |
@@ -112,7 +154,7 @@ Every task in this session follows this loop:
 
 ## Progress Checklist
 
-- [ ] Task 1 reviewed and approved
+- [x] Task 1 reviewed and approved
 - [ ] Task 2 reviewed and approved
 - [ ] Task 3 reviewed and approved
 - [ ] Task 4 reviewed and approved
@@ -127,13 +169,21 @@ Every task in this session follows this loop:
 - [ ] Task 13 reviewed and approved
 - [ ] Task 14 reviewed and approved
 
+## Review Status Legend
+
+- `Pending`: not started yet
+- `In review`: returned by builder and currently being checked
+- `Changes requested`: review found issues and the task is not approved yet
+- `Approved`: task passed review and its dependents may unlock
+- `Blocked`: cannot proceed because of an unresolved dependency or external blocker
+
 ## Blockers Log
 
 None recorded yet.
 
 ## Next Tasks Ready To Spawn
 
-1. `01_monorepo-foundation.task.md`
+1. `02_contracts-and-schema-lock.task.md`
 
 ## Acceptance Snapshot
 

@@ -51,6 +51,10 @@ Define the stable shared contracts and validation schemas that every runtime, UI
 - `docs/features/codex-runtime-adapter.md`
 - `docs/features/chat-session-core.md`
 - `docs/features/cloud-runtime.md`
+- `.agent/Takomi-Agents/custom_modes.yaml`
+- `.agent/Takomi-Agents/vibe-orchestrator.yaml`
+- `.agent/Takomi-Agents/vibe-code.yaml`
+- `.agent/Takomi-Agents/vibe-review.yaml`
 
 ## Scope
 
@@ -64,21 +68,25 @@ Define the stable shared contracts and validation schemas that every runtime, UI
   - audit event envelopes
   - workspace and worktree references
   - shell capabilities
+  - Takomi agent mode definitions and app-owned configurable defaults
   - preload IPC payloads
   - localhost bridge HTTP and WebSocket payloads
 - Lock names and shapes for the early interfaces called out in the master plan
+- Define a contract boundary that can ingest the current `.agent/Takomi-Agents/` defaults without coupling the app forever to raw YAML file access
 
 ## Out Of Scope
 
 - Full business logic for orchestration or persistence
 - UI implementation
 - Import/export adapter logic for session bundles
+- Final migration from repo files into app-managed user settings
 
 ## Definition Of Done
 
 - Contracts compile in `packages/contracts`
 - Validation schemas exist for the boundary payloads
 - `CodexRuntimeManager`, `ShellCapabilities`, and normalized event names are exported
+- Agent-definition contracts for default Takomi modes are exported
 - Desktop IPC and web-local bridge payloads are shape-compatible where they represent the same action
 
 ## Expected Artifacts
@@ -105,3 +113,4 @@ Define the stable shared contracts and validation schemas that every runtime, UI
 - Record the finalized event names
 - Record the finalized runtime target values
 - Record any constraints later tasks must not break
+- Record the chosen shape for app-owned Takomi agent definitions and how it maps back to the current `.agent/Takomi-Agents/` files

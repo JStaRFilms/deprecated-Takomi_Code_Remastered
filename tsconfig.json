@@ -1,0 +1,13 @@
+{
+  "files": [],
+  "references": [
+    { "path": "./packages/contracts" },
+    { "path": "./packages/orchestration" },
+    { "path": "./packages/runtime-codex" },
+    { "path": "./packages/persistence" },
+    { "path": "./packages/ui" },
+    { "path": "./apps/local-bridge" },
+    { "path": "./apps/web" },
+    { "path": "./apps/desktop" }
+  ]
+}
