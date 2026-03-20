@@ -120,7 +120,7 @@ When the user comes back with completed work, use this exact control pattern:
 | # | Task | Status | Mode / Workflow | Skills | Depends On | Verification | Next Gate |
 |---|---|---|---|---|---|---|---|
 | 1 | `01_monorepo-foundation.task.md` | Approved | `mode-code` / `vibe-build` | `takomi`, `monorepo-management`, `nextjs-standards` | none | Workspace checks, dev wiring, and verification fallback passed | Task 02 |
-| 2 | `02_contracts-and-schema-lock.task.md` | Pending | `mode-code` / `vibe-build` | `takomi`, `nextjs-standards` | 1 | Not started | Review |
+| 2 | `02_contracts-and-schema-lock.task.md` | Approved | `mode-code` / `vibe-build` | `takomi`, `nextjs-standards` | 1 | Package typecheck and runtime schema validation passed | Task 03, plus the parallel 04/06/07 window |
 | 3 | `03_session-bundle-interop.task.md` | Pending | `mode-code` / `vibe-build` | `takomi`, `nextjs-standards` | 2 | Not started | Review |
 | 4 | `04_shared-v6-shell.task.md` | Pending | `mode-code` / `vibe-build` | `takomi`, `frontend-design`, `nextjs-standards` | 1, 2 | Not started | Review |
 | 5 | `05_transcript-and-runtime-state.task.md` | Pending | `mode-code` / `vibe-build` | `takomi`, `nextjs-standards` | 2, 4 | Not started | Review |
@@ -155,7 +155,7 @@ When the user comes back with completed work, use this exact control pattern:
 ## Progress Checklist
 
 - [x] Task 1 reviewed and approved
-- [ ] Task 2 reviewed and approved
+- [x] Task 2 reviewed and approved
 - [ ] Task 3 reviewed and approved
 - [ ] Task 4 reviewed and approved
 - [ ] Task 5 reviewed and approved
@@ -183,7 +183,7 @@ None recorded yet.
 
 ## Next Tasks Ready To Spawn
 
-1. `02_contracts-and-schema-lock.task.md`
+1. `03_session-bundle-interop.task.md`
 
 ## Acceptance Snapshot
 

@@ -1,7 +1,7 @@
 # Orchestrator Summary
 
 **Session ID:** `orch-20260320-takomi-build-01`  
-**Status:** Review-gated orchestration manager active, Task 01 approved with real TypeScript check  
+**Status:** Review-gated orchestration manager active, Tasks 01 and 02 approved with real TypeScript and schema checks  
 **Mode:** `mode-orchestrator`
 
 ## Operating Mode
@@ -18,7 +18,7 @@ This session now acts as the review gatekeeper:
 | Task | Status | Notes |
 |---|---|---|
 | 01 Monorepo foundation | Approved | Workspace foundation scaffolded and verified |
-| 02 Contracts and schema lock | Pending | Waiting on Task 01 |
+| 02 Contracts and schema lock | Approved | Shared contracts, runtime schemas, and bridge payloads locked |
 | 03 Session bundle interop | Pending | Waiting on Task 02 |
 | 04 Shared v6 shell | Pending | Waiting on Tasks 01 and 02 |
 | 05 Transcript and runtime state | Pending | Waiting on Tasks 02 and 04 |
@@ -50,11 +50,18 @@ Task 01 review passed with:
 - installed `typescript`
 - real `pnpm typecheck` success
 
+Task 02 review passed with:
+
+- real `pnpm typecheck` success
+- representative payload validation via `pnpm verify:contracts`
+- review fix for the missing `system` transcript-part contract/schema alignment
+
 ## Current Gate
 
-- Current next allowed task: `pending/02_contracts-and-schema-lock.task.md`
+- Current next allowed task: `pending/03_session-bundle-interop.task.md`
+- Parallel window unlocked: `pending/04_shared-v6-shell.task.md`, `pending/06_electron-runtime-and-ipc.task.md`, `pending/07_web-local-bridge.task.md`
 - No task is currently in review
-- Task `01` is approved and unlocked Task `02`
+- Task `02` is approved and unlocked Task `03` and the parallel 04/06/07 window
 
 ## Risks And Blockers
 
@@ -62,4 +69,4 @@ Task 01 review passed with:
 
 ## Recommended Next Wave
 
-Start with `pending/02_contracts-and-schema-lock.task.md`, then gate Task 03 immediately after review passes.
+Start with `pending/03_session-bundle-interop.task.md`, while the parallel 04/06/07 window is also available.
