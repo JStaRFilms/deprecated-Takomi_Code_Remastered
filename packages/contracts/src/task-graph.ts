@@ -1,4 +1,5 @@
 import type { SessionStatus, TaskGraphState } from './constants.js';
+import type { RuntimeTarget, SessionKind } from './constants.js';
 
 export interface TaskGraphNode {
   readonly id: string;
@@ -37,6 +38,13 @@ export interface OrchestrationSession {
   readonly workspaceId: string;
   readonly rootSessionId: string;
   readonly status: SessionStatus;
+  readonly projectId?: string;
+  readonly parentSessionId?: string | null;
+  readonly kind?: SessionKind;
+  readonly name?: string;
+  readonly worktreePath?: string | null;
+  readonly runtimeTarget?: RuntimeTarget;
+  readonly worktreeId?: string | null;
   readonly taskGraphRootNodeId?: string;
   readonly createdAt?: string;
   readonly updatedAt?: string;

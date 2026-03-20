@@ -127,7 +127,7 @@ When the user comes back with completed work, use this exact control pattern:
 | 6 | `06_electron-runtime-and-ipc.task.md` | Approved | `mode-code` / `vibe-build` | `takomi`, `nextjs-standards` | 2 | `pnpm typecheck`, `pnpm verify:desktop-runtime-ipc`, and Electron binary boot verification passed after review fixes | Tasks 07, 08, and 12 remain valid; Task 09 still waits on 07 and 08 |
 | 7 | `07_web-local-bridge.task.md` | Approved | `mode-code` / `vibe-build` | `takomi`, `monorepo-management`, `nextjs-standards` | 2 | `pnpm typecheck` and `pnpm verify:web-local-bridge` passed after review fixes for payload parity, WebSocket delivery, CORS, bridge defaults loading, and port overrides | Tasks 08 and 12 remain valid; Task 09 still waits on 08 |
 | 8 | `08_persistence-audit-restore.task.md` | Approved | `mode-code` / `vibe-build` | `takomi`, `nextjs-standards` | 2, 3 | `pnpm typecheck` and `pnpm verify:persistence` passed after review fixes for runnable verification wiring and task-record cleanup | Tasks 09 and 12 are now valid |
-| 9 | `09_orchestration-engine.task.md` | Pending | `mode-code` / `vibe-build` | `takomi`, `nextjs-standards` | 2, 5, 6, 7, 8 | Not started | Review |
+| 9 | `09_orchestration-engine.task.md` | Approved | `mode-code` / `vibe-build` | `takomi`, `nextjs-standards` | 2, 5, 6, 7, 8 | `pnpm typecheck` and `pnpm verify:orchestration-engine` passed after review fixes for persisted lineage metadata, reload restore, background run parenting, and Takomi mode parsing | Tasks 10, 11, and 12 are now valid |
 | 10 | `10_git-worktree-controls.task.md` | Pending | `mode-code` / `vibe-build` | `takomi`, `nextjs-standards` | 6, 7, 8, 9 | Not started | Review |
 | 11 | `11_interventions-and-recovery.task.md` | Pending | `mode-code` / `vibe-build` | `takomi`, `nextjs-standards` | 5, 6, 7, 9 | Not started | Review |
 | 12 | `12_runtime-settings-billing-bags.task.md` | Pending | `mode-code` / `vibe-build` | `takomi`, `frontend-design`, `nextjs-standards` | 4, 8 | Not started | Review |
@@ -162,7 +162,7 @@ When the user comes back with completed work, use this exact control pattern:
 - [x] Task 6 reviewed and approved
 - [x] Task 7 reviewed and approved
 - [x] Task 8 reviewed and approved
-- [ ] Task 9 reviewed and approved
+- [x] Task 9 reviewed and approved
 - [ ] Task 10 reviewed and approved
 - [ ] Task 11 reviewed and approved
 - [ ] Task 12 reviewed and approved
@@ -184,17 +184,19 @@ When the user comes back with completed work, use this exact control pattern:
 - 2026-03-20: Task `06_electron-runtime-and-ipc.task.md` required direct review fixes for Electron binary installation, package export/runtime resolution, real desktop boot wiring, `.agent/Takomi-Agents` default loading, and executable desktop verification before approval.
 - 2026-03-20: Task `07_web-local-bridge.task.md` required direct review fixes for HTTP payload parity with desktop IPC, real `.agent/Takomi-Agents` default loading, WebSocket runtime delivery, valid CORS behavior, honest capability flags, dynamic dev-port overrides, and executable bridge verification before approval.
 - 2026-03-20: Task `08_persistence-audit-restore.task.md` required direct review fixes for repo-level verification wiring (`pnpm verify:persistence`) and task-record cleanup after the builder moved the packet to `completed/` while it still reported `Pending`.
+- 2026-03-20: Task `09_orchestration-engine.task.md` required direct review fixes for persisted session metadata needed to restore lineage after reload, background child-parent correlation on restore, repo-level verification wiring (`pnpm verify:orchestration-engine`), and agent-definition parsing that matches the real `.agent/Takomi-Agents/custom_modes.yaml` group format.
 
 ## Next Tasks Ready To Spawn
 
-1. `09_orchestration-engine.task.md`
-2. `12_runtime-settings-billing-bags.task.md`
+1. `10_git-worktree-controls.task.md`
+2. `11_interventions-and-recovery.task.md`
+3. `12_runtime-settings-billing-bags.task.md`
 
 ## Current Review Focus
 
-- Task `08` is approved and persistence is no longer blocking orchestration follow-on work
-- Tasks `09` and `12` are the active green-lit queue
-- Tasks `10` and `11` remain locked until Task `09` is also approved
+- Task `09` is approved and orchestration state ownership is no longer blocking follow-on work
+- Tasks `10`, `11`, and `12` are the active green-lit queue
+- Task `13` remains locked until Tasks `10`, `11`, and `12` are also approved
 
 ## Acceptance Snapshot
 

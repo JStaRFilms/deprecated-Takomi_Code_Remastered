@@ -275,6 +275,13 @@ export const OrchestrationSessionSchema = z
     workspaceId: z.string(),
     rootSessionId: z.string(),
     status: SessionStatusSchema,
+    projectId: z.string().optional(),
+    parentSessionId: z.string().nullable().optional(),
+    kind: SessionKindSchema.optional(),
+    name: z.string().optional(),
+    worktreePath: z.string().nullable().optional(),
+    runtimeTarget: RuntimeTargetSchema.optional(),
+    worktreeId: z.string().nullable().optional(),
     taskGraphRootNodeId: z.string().optional(),
     createdAt: z.string().optional(),
     updatedAt: z.string().optional()

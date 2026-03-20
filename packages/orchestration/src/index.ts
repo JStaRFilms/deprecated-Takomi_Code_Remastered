@@ -5,9 +5,24 @@ import type {
   WorkspaceDescriptor
 } from '@takomi/contracts';
 
+// Existing exports
 export * from './transcript-materializer.js';
 export * from './transcript-store.js';
 export * from './test-fixtures.js';
+
+// Orchestration engine modules
+export * from './session-lineage.js';
+export * from './task-graph-engine.js';
+export * from './background-executor.js';
+export * from './agent-definition-loader.js';
+export { OrchestrationEngine } from './orchestration-engine.js';
+export type {
+  CreateOrchestrationSessionInput,
+  AddTaskInput
+} from './orchestration-engine.js';
+export type { TaskGraphExecutionPlan } from './task-graph-engine.js';
+export type { BackgroundChildRun, BackgroundRunListener } from './background-executor.js';
+export type { RawCustomModeEntry, RawCustomModesFile } from './agent-definition-loader.js';
 
 export interface OrchestrationGraph {
   readonly workspace: WorkspaceDescriptor;
