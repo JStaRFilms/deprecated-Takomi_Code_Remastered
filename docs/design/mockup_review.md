@@ -1,48 +1,51 @@
-# Mockup Review: Takomi Code v5
+# Mockup Review: Takomi Code vNext
 
-**Target:** `v5-*.html` generated mockups  
-**Reviewer:** VibeCode Ask Specialist (Design Critic)  
-**Date:** 2026-03-10  
+**Target:** Takomi shared renderer direction for desktop and browser  
+**Reviewer:** Architecture and design reset pass  
+**Date:** 2026-03-20
 
 ## Build Gate Decision
-**STATUS: APPROVED FOR BUILD**
 
-The v5 mockups strongly adhere to the `design_direction.md` guidelines. They successfully capture the WinUI 3 desktop-native aesthetic, maintain high information density necessary for orchestration loops, and safely exclude any fee-sharing references.
+**STATUS: APPROVED AS DIRECTION, NOT AS A PIXEL-FOR-PIXEL LEGACY PORT**
 
----
+The new product direction is strong when it emphasizes orchestration clarity, session hierarchy, and a high-trust streaming workspace. The design should move forward as a shared React renderer that powers both Electron and browser, rather than a direct translation of previous desktop-native mockups.
 
-## 1. Usability & Desktop Ergonomics Review
-- **Windows Native Feel**: Excellent execution of `studio-acrylic` and `win-illuminated-border` classes. The dark theme with Mica-like noise backgrounds feels native to Windows 11.
-- **High Density**: The UI makes great use of small, legible fonts (Segoe UI Variable, Cascadia Code) and compact padding (`px-2 py-1`), making the interface feel like a professional IDE.
-- **Feedback & Interaction**: Click states (`win-press`) and hover transitions are implemented universally, providing necessary tactile feedback.
+## What Should Carry Forward
 
-## 2. Information Hierarchy Review
-- **Global vs. Session Context**: The separation between the slim global left rail and the active session workspace is clear. The context bar consistently reminds users of the active worktree (e.g., `#ws-a8b2`).
-- **Intervention Prominence**: `v5-intervention-controls.html` and `v5-task-tree.html` use high-contrast danger colors and pulsing animations effectively to draw immediate attention to blocked tasks, satisfying the "Intervention Prominence" requirement.
-- **Git & Worktree States**: `v5-worktree-manager.html` provides a lucid distinction between the Host repository and assigned worktrees, preventing state confusion.
-- **Billing & Verification**: `v5-billing-verification.html` strictly adheres to constraints; it securely displays local entitlements and Bags verification. **Zero fee-sharing UI detected.**
+- High information density for serious builders
+- Clear separation between global navigation, session hierarchy, main work, and inspection
+- Strong visibility for active runs, blocked states, and intervention moments
+- A premium dark interface with deliberate accent usage
+- A transcript surface that treats command output, file changes, thoughts, and pause requests as different content types
 
----
+## What Must Change for the New Architecture
 
-## 3. Refinement Checklist (For Build Phase)
-These are minor polish items to address during WinUI 3 implementation. They do not block the build.
+- The shell can no longer assume desktop-only layout, filesystem access, or native controls.
+- All major screens must be designed as shared React surfaces with browser-responsive behavior.
+- Runtime and workspace controls need explicit capability states:
+  - desktop-local
+  - remote/browser-safe
+  - unavailable in current shell
+- Streaming-heavy views must be designed for incremental rendering and list virtualization from the start.
 
-- [ ] **Performance**: Monitor the cost of Acrylic-like blur, illuminated borders, and layered translucency when translating these mockups into WinUI surfaces, especially on large lists.
-- [ ] **Accessibility**: Ensure ARIA labels are added to the minimized left-rail navigation icons (Home, Sessions, Settings) since text labels are hidden.
-- [ ] **Scrollbars**: Implement native OS scrollbar behavior in the final shell (currently mocked via `::-webkit-scrollbar`).
-- [ ] **Task Tree Canvas**: The node graph in `v5-task-tree` uses static DOM elements for the DAG connections. During implementation, this will need to be replaced with a dynamic WinUI-friendly drawing layer such as Composition, Win2D, or SVG-based rendering.
+## Refinement Checklist
 
----
+- [ ] Verify the project selector has clear browser and desktop capability messaging.
+- [ ] Confirm the session explorer remains legible with deep parent/child trees and narrow widths.
+- [ ] Ensure intervention prompts and pause states are visually distinct from normal transcript cards.
+- [ ] Design the activity dock to scale from wide desktop monitors down to compact browser layouts.
+- [ ] Keep motion lightweight enough for long-running transcript streams and frequent task updates.
+- [ ] Validate color contrast for alert, warning, and success states against the dark graphite palette.
 
-## 4. Specific File Analysis
+## Screen-Level Guidance
 
-| Mockup File | Status | Notes |
-| :--- | :--- | :--- |
-| `v5-project-selector.html` | Passed | Clean, empty state handles both initialization and cloning well. |
-| `v5-orchestrator-home.html` | Passed | Excellent dashboard density. Clear visibility into engine health. |
-| `v5-session-workspace.html` | Passed | The right-pane inspector scales perfectly for deep artifact inspection. |
-| `v5-task-tree.html` | Passed | Visual DAG is highly readable. Error nodes are unmissable. |
-| `v5-intervention-controls.html` | Passed | Context dump and resolution routes are cleanly separated. |
-| `v5-worktree-manager.html` | Passed | Clear visual hierarchy between base repo and linked trees. |
-| `v5-billing-verification.html` | Passed | Strictly follows constraint (Pro & Bags only). |
-| `v5-settings-runtime.html` | Passed | Clear toggles and disabled states for constrained settings. |
+| Surface | Status | Guidance |
+|---|---|---|
+| Project selector | Keep | Make environment capability explicit and support remote workspace entry for browser. |
+| Orchestrator home | Keep | Focus on run health, blocked work, and recent session recovery. |
+| Session workspace | Keep | This remains the primary product surface and should receive the most polish. |
+| Task tree monitor | Keep | Needs both list and compact-graph thinking, with performance-sensitive rendering. |
+| Intervention controls | Keep | Must show scope of action and recovery impact clearly. |
+| Worktree manager | Keep with adaptation | Desktop gets full control; browser gets status or remote-backed actions only. |
+| Billing and verification | Keep | Use shared product language, not separate “settings app” styling. |
+| Runtime settings | Keep | Center the Codex SDK runtime model and shell capability states. |

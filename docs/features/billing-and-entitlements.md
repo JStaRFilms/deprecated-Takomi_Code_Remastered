@@ -1,24 +1,59 @@
 # Billing and Entitlements
 
 ## Goal
-Provide a Paystack-oriented billing success path that is concrete enough for demo use: checkout initiation, pending reference visibility, entitlement activation, and auditability.
 
-## Components
-- **IBillingService**: Billing contract for checkout creation, pending checkout lookup, entitlement activation, and entitlement lookup.
-- **PaystackMockBillingService**: Local Paystack-style adapter that persists pending checkout sessions and active entitlements in `%LocalAppData%\TakomiCode\billing-state.json`.
-- **MainViewModel**:
-  - Loads entitlement and pending checkout state during shell initialization.
-  - Exposes billing status, checkout URL, pending Paystack reference, and customer email.
-  - Provides explicit commands to start checkout and confirm the success path.
-- **MainWindow.xaml**: Surfaces current billing tier, billing email entry, checkout start/confirm actions, and the pending Paystack reference directly in the shell.
+Provide a Paystack-oriented billing flow that supports checkout initiation, pending reference visibility, entitlement activation, and durable auditability in the shared React product surface.
+
+## Package Ownership
+
+- `packages/contracts`
+  - entitlement records
+  - checkout session payloads
+  - billing audit events
+- `packages/persistence`
+  - local cache of entitlement state
+  - pending checkout references
+- `packages/ui`
+  - billing settings and entitlement displays
+- `apps/desktop`
+  - external-link or system-browser checkout launch through typed IPC
+- `apps/web`
+  - browser-native checkout redirect flow
+
+## Product Rules
+
+- Billing state is workspace-aware where needed but must remain cleanly isolated from transcript and orchestration rendering.
+- The billing success path must be explicit and auditable.
+- Fee sharing does not belong in this feature scope.
+
+## Desktop and Browser Split
+
+### Desktop
+
+- Checkout launch may open externally through Electron main.
+- Pending checkout state and return flows are restored into the shared renderer.
+
+### Browser
+
+- Checkout launch happens through standard web navigation or a dedicated billing flow.
+- Entitlement refresh uses the same shared billing service contract.
 
 ## Data Flow
-- **Checkout Start**: The user enters an email and starts checkout -> `CreateCheckoutSessionAsync()` creates a Paystack-style reference and checkout URL -> the pending checkout is persisted and `billing.checkout_started` is appended to the audit log.
-- **Success Path**: The user confirms the Paystack success path -> `ActivateEntitlementAsync()` verifies the pending reference, creates a Pro entitlement, clears the pending checkout, and appends `billing.entitlement_activated`.
-- **Shell Restore**: On app startup, the shell restores both the current entitlement and any unfinished pending checkout so billing state remains visible after restart.
 
-## Audit Trail
+- User enters billing identity details and starts checkout.
+- The billing service creates a checkout reference and URL.
+- The UI stores the pending reference and surfaces status until confirmation.
+- On success, entitlement state is activated and cached for restore.
+- Audit events capture checkout start, confirmation, and failure states.
+
+## Audit Events
+
 - `billing.checkout_started`
 - `billing.entitlement_activated`
+- `billing.checkout_failed`
 
-Billing audit events are workspace-scoped. The billing service no longer writes a synthetic `"system"` session id, which keeps billing records queryable alongside orchestration/runtime events without overloading session identity.
+## Acceptance Notes
+
+- Desktop and browser must show the same entitlement and pending-checkout concepts.
+- The success path must restore cleanly after reload.
+- Billing audit events must be queryable alongside runtime and verification events without overloading session identity.

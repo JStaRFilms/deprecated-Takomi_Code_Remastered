@@ -1,48 +1,71 @@
 # Chat Session Core
 
 ## Overview
-The chat session core provides project-scoped chats, parent-child session relationships, and durable transcript restore for the WinUI shell. It is the first runtime-backed slice of the Takomi orchestration experience and gives later tasks a stable session model to build on.
 
-## Architecture
-- **UI shell:** `src/TakomiCode.UI/MainWindow.xaml`
-- **UI state:** `src/TakomiCode.UI/ViewModels/MainViewModel.cs`
-- **Session wrappers:** `src/TakomiCode.UI/ViewModels/ChatSessionViewModel.cs`
-- **Persistence contract:** `src/TakomiCode.Application/Contracts/Persistence/IChatSessionRepository.cs`
-- **Local repository:** `src/TakomiCode.Infrastructure/Persistence/LocalChatSessionRepository.cs`
+The chat session core provides workspace-scoped chats, parent/child session relationships, durable transcript restore, and shared React state for the Takomi orchestration experience. It is the backbone for transcript rendering, task execution, recovery, and audit correlation.
 
-## Key Components
+## Package Ownership
 
-### `ChatSession`
-`src/TakomiCode.Domain/Entities/ChatSession.cs` models a single project chat. Each session carries a `WorkspaceId`, optional `ParentSessionId`, transcript collection, and optional worktree override.
+- `packages/contracts`
+  - chat session entities
+  - transcript event types
+  - parent/child relationship metadata
+  - workspace/worktree references
+- `packages/orchestration`
+  - session creation rules
+  - parent/child lineage logic
+  - inheritance rules
+- `packages/persistence`
+  - session repository
+  - transcript event store
+  - restore snapshots
+- `packages/ui`
+  - session explorer
+  - transcript workspace
+  - session tab and header surfaces
 
-### `LocalChatSessionRepository`
-The local repository persists session state to `%LocalAppData%\TakomiCode\chat-sessions.json`. Repository reads clone stored entities before returning them so UI mutations stay explicit through `SaveSessionAsync`.
+## Core Rules
 
-### `MainViewModel`
-The main view model creates a default workspace context, restores saved chats for that workspace, exposes session selection, and supports:
-- creating root project chats
-- creating child sessions that inherit the parent workspace and worktree
-- saving transcript messages back to the repository
+- Sessions are scoped to a workspace.
+- Child sessions inherit the same workspace by default.
+- Child sessions inherit the parent worktree unless the user explicitly overrides it.
+- Transcript history is append-first and restorable.
+- Session identity must stay consistent across orchestration, runtime, and audit layers.
 
-### `ChatSessionViewModel`
-The session view model exposes transcript messages for binding and provides `CreateChildSession(...)` so parent-child inheritance stays consistent in one place.
+## Desktop and Browser Split
+
+### Shared
+
+- Session structure, transcript rendering, and restore behavior are shared across desktop and browser.
+
+### Desktop
+
+- Sessions can be attached directly to local workspaces and artifacts on disk through native bridges.
+
+### Browser
+
+- Sessions operate against remote or synchronized workspace contexts.
+- If a session depends on a desktop-only workspace action, the UI must show the required next step.
 
 ## Data Flow
 
 ```mermaid
 flowchart LR
-    A["MainWindow"] --> B["MainViewModel"]
-    B --> C["IChatSessionRepository"]
-    C --> D["LocalChatSessionRepository"]
-    D --> E["%LocalAppData%/TakomiCode/chat-sessions.json"]
+    UI["Shared React UI"] --> Store["Session Store"]
+    Store --> Orchestration["Takomi Orchestration Rules"]
+    Store --> Repo["Session Repository"]
+    Repo --> Events["Transcript Event History"]
+    Repo --> Snapshots["Restore Snapshots"]
 ```
 
-## Current Behavior
-- Sessions are scoped to a workspace id.
-- Child sessions inherit the same workspace id by default.
-- Child sessions also inherit the parent worktree path unless an explicit override is supplied.
-- Transcript messages are restored on app startup from the local JSON store.
+## Performance Notes
 
-## Constraints
-- Workspace switching remains explicit and is not automated by the session core.
-- Full compile verification is still pending until the WinUI/.NET toolchain is installed and `dotnet build` can be executed.
+- Transcript rendering should materialize from event history into render-ready blocks outside component render functions.
+- Long sessions should use virtualization or incremental windowing.
+- Background child session updates must not block the active composer or inspector.
+
+## Acceptance Notes
+
+- Parent/child session relationships must survive reload.
+- Same-workspace inheritance must be the default behavior in both desktop and browser-compatible flows.
+- Explicit worktree overrides must be visible in the session header and inspector.

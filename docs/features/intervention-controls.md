@@ -1,33 +1,72 @@
 # Intervention Controls
 
 ## Overview
-The Intervention Controls feature implements the live intervention model for active orchestrator runs and exposes these controls in the WinUI shell. It ensures that operations like pausing, resuming, cancelling, re-routing, migrating, replacing, and injecting guidance are available and generate a durable structured audit trail.
 
-## Architecture
-- **Entities:** `TakomiCode.Domain.Entities.InterventionAction`
-- **Application Services:** `TakomiCode.Application.Services.InterventionCommandHandler`, `TakomiCode.Application.Contracts.Services.IInterventionCommandHandler`
-- **Adapters:** `TakomiCode.RuntimeAdapters.Codex.CodexCliAdapter`, `TakomiCode.Infrastructure.Persistence.LocalOrchestrationRepository`
-- **UI View Models:** `TakomiCode.UI.ViewModels.MainViewModel`
+The Intervention Controls feature provides live control over active Takomi runs and child sessions. It makes pausing, resuming, cancelling, rerouting, replacing, migrating context, and injecting guidance part of the core product workflow rather than an afterthought.
 
-## Key Components
+## Package Ownership
 
-### InterventionCommandHandler
-Orchestrates intervention actions by validating the run state via `IOrchestrationRepository`, emitting structured intervention audit events, updating persisted run/task state for supported actions, and instructing the runtime adapter (`ICodexRuntimeAdapter`) to execute the intervention.
+- `packages/contracts`
+  - intervention action types
+  - intervention request and response schemas
+  - intervention audit event payloads
+- `packages/orchestration`
+  - intervention policy
+  - run ownership and scope resolution
+  - recovery flow hooks
+- `packages/runtime-codex`
+  - runtime command implementations
+  - run-state synchronization
+- `packages/persistence`
+  - intervention history
+  - run status restore
+- `packages/ui`
+  - intervention controls
+  - pause/request cards
+  - recovery prompts
 
-### CodexCliAdapter Integration
-Currently routes cancellations to the process-level `CancelRunAsync`. Other interventions (Guidance, Pause, Resume, Replace, Migrate, Reroute) explicitly fail with `NotSupportedException`, while the handler records `intervention.unsupported` audit events and the shell surfaces clear feedback.
+## Core Rules
 
-### MainViewModel (UI)
-Monitors active orchestration runs and exposes `[RelayCommand]` endpoints for each intervention type. It feeds the `Active Runs` panel in the primary WinUI window.
+- Interventions must identify their scope clearly:
+  - current run
+  - child run
+  - session subtree
+- The system must record requested, applied, unsupported, and failed intervention outcomes.
+- The UI must keep intervention controls close to the active run and the transcript state that prompted them.
+
+## Desktop and Browser Split
+
+### Shared
+
+- The intervention vocabulary and audit model are identical across desktop and browser.
+
+### Desktop
+
+- Local runs route intervention commands through Electron main to the local runtime host.
+
+### Browser
+
+- Remote runs route intervention commands through the remote runtime contract.
+- If an intervention is unsupported by the active backend, the UI must show that explicitly and log the outcome.
 
 ## Data Flow
+
 ```mermaid
 flowchart LR
-    UI[MainViewModel] -->|ExecuteInterventionAsync| Handler[InterventionCommandHandler]
-    Handler -->|Get Run| DB[OrchestrationRepository]
-    Handler -->|Append| Audit[AuditLogRepository]
-    Handler -->|SendIntervention| Runtime[CodexRuntimeAdapter]
+    UI["Shared React UI"] --> Policy["Intervention Policy"]
+    Policy --> Runtime["Codex Runtime Manager"]
+    Policy --> Repo["Persistence and Audit"]
 ```
 
-## Audit Trail Tracking
-Every intervention triggers an `AuditEvent` with type `intervention.requested`, followed by `intervention.applied`, `intervention.unsupported`, or `intervention.failed` depending on outcome. Audit events are stored durably in `%LocalAppData%\TakomiCode\audit-events.json`, so interventions are not treated as transient UI state.
+## Audit Events
+
+- `intervention.requested`
+- `intervention.applied`
+- `intervention.unsupported`
+- `intervention.failed`
+
+## Acceptance Notes
+
+- Intervention state must survive reload and remain correlated to the owning run.
+- Pause/resume/cancel are table-stakes.
+- Guidance injection, reroute, replace, and migrate must fit the same action model even if backend support is phased.

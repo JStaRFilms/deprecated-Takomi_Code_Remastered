@@ -2,35 +2,48 @@
 
 ## Design Intent
 
-Takomi Code should feel like a premium Windows-native command center for serious builders. The interface must communicate control, speed, hierarchy, and trust without looking like a web app in a desktop frame.
+Takomi Code should feel like a premium orchestration studio for builders: fast, focused, and visibly in control. The product must not look like a generic admin dashboard, and it must not feel like two different products between desktop and browser. The Electron shell should add power, not a different personality.
 
 ## Experience Goals
 
-- Make project and session state legible at a glance.
-- Keep orchestration visible without overwhelming the main conversation surface.
-- Make background runs feel alive and controllable.
-- Show branch, workspace, runtime, and entitlement state where users naturally look for them.
+- Make project, workspace, branch, and runtime state legible at a glance.
+- Keep orchestration visible without burying the main conversation and execution surfaces.
+- Make background child runs feel alive, trustworthy, and easy to intervene in.
+- Preserve calm under heavy activity: streaming output, task changes, and audit events should feel fluid rather than chaotic.
+- Keep browser and desktop experiences visually unified, with desktop-only capabilities revealed as deliberate upgrades rather than surprising divergence.
 
-## Primary Surfaces
+## Primary Product Surfaces
 
-- Project picker and onboarding
+- Project and workspace selector
 - Orchestrator home
-- Multi-chat workspace
-- Child run tree and timeline
-- Branch and worktree manager
-- Intervention command panel
+- Multi-session workspace
+- Child run tree and execution timeline
+- Git branch and worktree manager
+- Intervention command center
 - Settings and runtime configuration
 - Billing and Bags verification screens
+- Audit log and recovery history
 
 ## Visual Direction
 
-- Crisp, layered Windows surfaces with confident spacing.
-- High-contrast typography with strong information hierarchy.
-- Subtle motion for run state transitions and panel changes.
-- Rich but controlled accent color usage; avoid generic dark-pane dashboards.
+- Dark graphite foundations with warm metallic accent energy rather than neon or default SaaS gradients
+- Strong typography hierarchy with a distinct headline face and a disciplined monospace for technical state
+- Layered surfaces, subtle depth, and motion that clarifies state transitions instead of decorating them
+- Bright, confident focus states and intervention alerts that feel precise instead of alarming
+- Dense information layout that still breathes through grouping, spacing, and rhythm
 
-## Design Constraints
+## Interaction Priorities
 
-- Produce HTML prototypes first for review and iteration.
-- Maintain desktop-specific navigation and information density.
-- Ensure the final WinUI layout preserves the approved interaction model.
+- Streaming-first transcript design
+- Clear parent/child session hierarchy
+- Persistent workspace and branch context
+- One-click access to interventions and recovery actions
+- Fast switching between chat, task graph, inspector, and audit views
+
+## Product Constraints
+
+- The shared React renderer is the primary interaction model.
+- Desktop-only features must be presented through the same design system and language as browser-safe features.
+- No renderer assumptions about local filesystem access or native APIs.
+- Same-workspace inheritance must be obvious in the UI, and worktree overrides must be visibly explicit.
+- Fee sharing stays out of billing and verification flows.

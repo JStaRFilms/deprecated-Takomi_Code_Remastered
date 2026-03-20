@@ -1,25 +1,61 @@
 # Git and Worktree Controls
 
 ## Goal
-Integrate Git actions directly into the session core shell so that users can clearly see the state of their current worktree (branch and dirty status) and manage parallel work effortlessly through explicit worktree creation and switching commands.
 
-## Components
-- **IGitService**: Contract defining Git interactions (e.g. `GetCurrentStateAsync`, `CreateWorktreeAsync`, `EnsureWorktreeIsValidAsync`).
-- **GitService**: Implementation using `System.Diagnostics.Process` to run specific Git commands (`rev-parse`, `status`, `branch`, `worktree add`) and fail clearly when Git rejects a command.
-- **MainViewModel**: 
-  - Subscribes to session changes to automatically refresh the `CurrentGitBranch` and `GitDirtyIndicator`.
-  - Provides `CreateWorktreeCommand` and `SwitchWorktreeCommand`.
-  - Updates the selected session subtree when a worktree switch is explicit and only for descendants still inheriting the prior worktree path.
-  - Triggers structured audit logging events whenever a worktree is created or a subtree is switched.
-- **MainWindow.xaml**: The core shell UI binding to these properties to render Git feedback right next to the current session's workspace path.
+Expose Git branch state, dirty state, and explicit worktree management in a way that preserves Takomi's same-workspace defaults while enabling safe parallel execution across parent/child session trees.
+
+## Package Ownership
+
+- `packages/contracts`
+  - branch status shapes
+  - worktree mutation payloads
+  - Git audit events
+- `packages/orchestration`
+  - session subtree inheritance logic
+  - worktree reassignment rules
+- `packages/ui`
+  - branch badges
+  - worktree manager
+  - session header and inspector state
+- `apps/desktop`
+  - Git service in Electron main
+  - typed IPC for status, create, validate, and switch operations
+- `apps/web`
+  - remote-backed Git status path or explicit read-only fallback
+
+## Product Rules
+
+- Same-workspace inheritance is the default for child sessions.
+- Worktree switching is always explicit and must declare its scope.
+- Only descendants still inheriting the prior workspace/worktree may be bulk-updated automatically.
+
+## Desktop and Browser Split
+
+### Desktop
+
+- Full Git inspection and worktree mutation are available through Electron main.
+- The renderer requests actions through typed IPC and updates the shared orchestration state once the native action succeeds.
+
+### Browser
+
+- Browser may show remote-backed Git state if available.
+- If no remote Git service exists, the browser must present a clear read-only or unavailable state instead of pretending local worktree control exists.
 
 ## Data Flow
-- **Initialization/Selection**: When the user opens the app or selects a session, `MainViewModel.RefreshGitStateAsync()` fires off, parsing `git rev-parse --abbrev-ref HEAD` and `git status --porcelain`.
-- **Worktree Switching**: User inputs a path -> `SwitchWorktreeAsync()` validates the target path through `IGitService` -> the selected session subtree is updated and persisted -> `IAuditLogRepository.AppendEventAsync` logs the switch. Unrelated sessions are left untouched.
-- **Worktree Creation**: User requests a new worktree -> `GitService` creates and validates the worktree -> `MainViewModel` switches the selected subtree to it and logs both creation and switch events.
 
-## Audit Trail
+- Session selection loads current branch, dirty state, and workspace/worktree identity.
+- Creating or switching a worktree validates the target through the desktop bridge or remote service.
+- The selected session subtree is updated according to inheritance rules.
+- Audit events record both creation and switching actions.
+
+## Audit Events
+
 - `workspace.worktree_created`
 - `workspace.worktree_switched`
+- `workspace.git_state_refreshed`
 
-Audit events are stored durably in `%LocalAppData%\TakomiCode\audit-events.json`.
+## Acceptance Notes
+
+- Branch and worktree context must remain visible in the shared shell.
+- Switching a worktree must never silently mutate unrelated session trees.
+- Browser behavior must be capability-aware and honest about what is unavailable.

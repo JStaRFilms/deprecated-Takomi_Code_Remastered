@@ -1,58 +1,70 @@
 # Orchestrator Execution Engine
 
 ## Overview
-The orchestrator execution engine owns task-graph execution state for Takomi sessions. It models orchestration sessions, task dependencies, background child runs, and task artifacts while keeping the app shell as the single source of truth for orchestration progress.
 
-## Architecture
-- **Domain models:** `src/TakomiCode.Domain/Entities/Orchestration.cs`
-- **Repository contract:** `src/TakomiCode.Application/Contracts/Persistence/IOrchestrationRepository.cs`
-- **Execution contract:** `src/TakomiCode.Application/Contracts/Services/IOrchestratorExecutionEngine.cs`
-- **Engine implementation:** `src/TakomiCode.Application/Services/OrchestratorExecutionEngine.cs`
-- **Local persistence:** `src/TakomiCode.Infrastructure/Persistence/LocalOrchestrationRepository.cs`
+The orchestrator execution engine owns Takomi task-graph execution state. It models orchestration sessions, task dependencies, parent/child session creation, background child runs, artifacts, interventions, and recovery while keeping the shared renderer as a consumer rather than the source of truth.
 
-## Key Components
+## Package Ownership
 
-### `OrchestrationSession`
-Represents a top-level orchestration wave for a workspace. The session stores the original prompt, overall status, and the task set associated with the session id.
+- `packages/contracts`
+  - orchestration session entities
+  - task graph entities
+  - run and artifact correlation ids
+- `packages/orchestration`
+  - execution scheduler
+  - dependency resolution
+  - child-session creation
+  - recovery rules
+  - artifact recording
+- `packages/runtime-codex`
+  - run dispatch and runtime ownership tracking
+- `packages/persistence`
+  - orchestration repository
+  - task graph snapshots
+  - artifact metadata
+- `packages/ui`
+  - task graph monitor
+  - session-tree status badges
+  - artifact and recovery surfaces
 
-### `OrchestrationTask`
-Tracks a single orchestrated task file, its dependencies, target mode, optional parent task, optional execution command, execution runs, and attached artifacts.
+## Core Responsibilities
 
-### `OrchestrationRun`
-Represents a concrete task execution attempt. Runs can point to a parent run to model parent-child execution trees, persist the owning workspace id for later correlation, and can also link to the child chat session created for that run.
-
-### `OrchestratorExecutionEngine`
-The engine:
-- creates orchestration sessions
-- adds tasks and dependency edges
-- creates child chat sessions for task runs
-- queues and dispatches background Codex-backed runs when an execution command is present
-- records completion, failure, and artifacts back into the orchestration repository
-- unblocks dependency-blocked tasks during background monitoring
-
-### `LocalOrchestrationRepository`
-Stores orchestration sessions, tasks, runs, and artifacts in `%LocalAppData%\TakomiCode\orchestration-store.json`. Corrupt stores are quarantined so the shell can recover cleanly.
+- create orchestration sessions
+- add tasks and dependency edges
+- create child chat sessions for delegated work
+- dispatch Codex SDK-backed runs through the runtime manager
+- track completion, failure, pause, intervention, and recovery states
+- attach artifacts and result documents
 
 ## Data Flow
 
 ```mermaid
 flowchart LR
-    A["WinUI Shell / Orchestrator"] --> B["IOrchestratorExecutionEngine"]
-    B --> C["IOrchestrationRepository"]
-    B --> D["IChatSessionRepository"]
-    B --> E["ICodexRuntimeAdapter"]
-    C --> F["orchestration-store.json"]
+    Prompt["User Prompt"] --> Engine["Orchestrator Execution Engine"]
+    Engine --> Tasks["Task Graph"]
+    Engine --> Sessions["Parent/Child Sessions"]
+    Engine --> Runtime["Codex Runtime Manager"]
+    Runtime --> Events["Normalized Runtime Events"]
+    Events --> Engine
+    Engine --> Repo["Orchestration Persistence"]
+    Repo --> UI["Shared React UI"]
 ```
 
-## Current Behavior
-- Parent-child task relationships can be modeled through `ParentTaskId`.
-- Parent-child run relationships can be modeled through `ParentRunId`.
-- Run creation now snapshots `WorkspaceId` onto the run so background execution and later interventions do not need to reach back into transient session scope.
-- Runtime dispatch forwards workspace, orchestration session, run, and child chat session identifiers into the Codex runtime request so downstream audit events stay queryable across adapters.
-- Dependency-blocked tasks remain blocked until `BackgroundMonitorRunsAsync(...)` sees their prerequisites complete.
-- Result documents and other artifacts can be attached to a task/run pair explicitly.
-- Result file path derivation stays aligned with the existing `docs/tasks/.../*.task.md` to `*.result.md` convention.
+## Product Rules
 
-## Constraints
 - The engine remains the state owner for task graph execution.
-- Verification is expected to include `dotnet build` across the affected projects because the engine depends on compile-time propagation of runtime correlation data.
+- Parent/child task relationships and parent/child run relationships must remain explicit.
+- Background child runs must not block the parent session.
+- Result artifacts must stay correlated to workspace, orchestration session, task, run, and child session identity where applicable.
+
+## Performance Notes
+
+- Task graph recomputation should happen in orchestration or store layers, not inline React rendering.
+- Deep trees and frequent event bursts must not trigger full workspace rerenders.
+- Result attachment and audit writes should be async and incremental.
+
+## Acceptance Notes
+
+- The engine must preserve Takomi workflows and recovery flows.
+- Runtime correlation ids must remain stable across local desktop and remote/browser-safe targets.
+- The renderer should be able to restore task state and session lineage from persistence alone.

@@ -1,27 +1,61 @@
-# Feature: Project Selector (Project Workspace Selection)
+# Feature: Project Selector
 
 ## Goal
-Implement a high-fidelity workspace selection surface that aligns with the v5 Project Selector mockup. This surface allows users to initialize new environments, clone repositories, and select from recent workspaces.
 
-## Structure
-The Project Selector will be implemented as a global overlay or a distinct state in `MainWindow.xaml`.
+Implement a high-fidelity project and workspace selection surface that works as the shared entry point for both Electron desktop and browser-compatible Takomi shells.
 
-### Components
-1. **Sidebar Navigation (Lateral Nav)**:
-   - Environment status (Codex version, Docker status).
-   - Permissions widget (Bags Verified status).
-   - Bottom settings link.
-2. **Main Workspace Area**:
-   - Header: "Select a Workspace".
-   - Action Grid: Large cards for "Initialize Folder" and "Clone Repository".
-   - Recent List: "Recent Environments" table/list with path and last active timestamp.
+## Package Ownership
 
-## Data Flow
-- `MainViewModel` will track `RecentWorkspaces` collection.
-- `IsProjectOpen` boolean will toggle between `ProjectSelectorSection` and the main `ShellNavigation`.
-- `InitializeFolderCommand` and `CloneRepositoryCommand` will trigger system dialogs/actions.
+- `packages/contracts`
+  - workspace metadata
+  - recent project entries
+  - shell capability state
+- `packages/persistence`
+  - recent workspace history
+  - last-opened project state
+- `packages/ui`
+  - selector layout
+  - recent workspaces list
+  - runtime/capability status cards
+- `apps/desktop`
+  - folder picker
+  - local clone/open flows
+  - native dialog bridge
+- `apps/web`
+  - remote workspace connect flows
+  - browser-safe recent workspace restore
 
-## UI Implementation Details (WinUI 3)
-- Use `studio-acrylic` style equivalent (AcrylicBrush).
-- Custom `win-illuminated-border` using `Border` with specific `BorderBrush` gradients or nested borders.
-- `win-press` effect using `PointerPressed` / `PointerReleased` visual states.
+## Surface Requirements
+
+- Show recent workspaces and their last-known state.
+- Show shell capability state:
+  - desktop-local available
+  - remote-only
+  - disconnected or blocked
+- Provide clear first actions:
+  - open local workspace
+  - clone/connect repository
+  - reopen recent workspace
+  - connect remote workspace
+
+## Desktop and Browser Split
+
+### Desktop
+
+- Can open local folders, clone into local paths, and validate local runtime readiness.
+
+### Browser
+
+- Cannot assume local folder access.
+- Must emphasize remote workspace connection and browser-safe runtime availability.
+
+## Interaction Notes
+
+- The selector should feel like a control room entry screen, not a plain file picker.
+- Environment capability and runtime readiness should be visible before a project opens.
+- Recent workspace entries should surface branch, runtime target, and unresolved recovery state when available.
+
+## Acceptance Notes
+
+- This surface is the first impression of the new architecture, so it must make the desktop-vs-browser distinction clear without fragmenting the product feel.
+- It should route directly into the shared workspace shell after selection.

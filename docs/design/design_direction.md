@@ -1,49 +1,102 @@
 # Design Direction: Takomi Code
 
-## 1. Visual Direction & UI Principles
-- **Desktop-Native First**: The application must feel like a first-class Windows citizen, using WinUI 3 idioms. This includes leveraging native materials (Mica, Acrylic), standard Windows typography (Segoe UI Variable), and native windowing controls. It must not feel like a wrapped web app or Electron port.
-- **High-Density Professional Shell**: As an orchestration tool for engineers, the UI must support high information density. Padding and margins should be compact but breathable, focusing on readability and rapid scanning of logs, trees, and code.
-- **State Transparency**: System state, git state, and orchestration state must always be explicitly visible. Operations are never hidden from the user.
-- **Auditability**: The design must reinforce trust. Every run, intervention, and billing action is critical path and should have a clear, unalterable visual log.
+## 1. Product Character
 
-## 2. Information Architecture & Navigation Model 
-The application shell is divided into structured panels to separate global context, session context, active work, and background status.
+- **Performance-Luxury Hybrid:** Takomi should feel fast enough for active engineering work and refined enough to feel intentionally designed. The mood is controlled, technical, and premium.
+- **Shared-Shell Consistency:** Desktop and browser must look like the same product family. The desktop shell adds capability and windowing, not a separate aesthetic.
+- **State Transparency:** Runtime state, workspace state, task state, branch state, and recovery state should remain visible at all times.
+- **Trust Through Structure:** Audit trails, interventions, and session lineage should feel inspectable and grounded, not hidden in menus.
 
-- **Primary Left Rail (Global)**: Contains high-level navigation.
-    - Projects
-    - Settings
-    - Billing (Paystack)
-    - Bags Verification
-- **Secondary Left Pane (Session Explorer)**: Displays the hierarchical tree of chats and sub-chats for the active project.
-- **Main Content Area (Tabbed Workspace)**: Houses active chat interfaces, orchestrator task graphs, and artifact reviews.
-- **Right Pane (Inspector)**: Context-sensitive details for the currently selected node (Task details, Worktree/Git status, Artifact list, Mode/Workflow configs).
-- **Bottom Status & Audit Panel**: Displays real-time background child execution status, global audit event tails, and network/runtime health.
+## 2. Typography and Color
 
-## 3. Core Interaction Patterns
+- **Headline Font:** `Space Grotesk`
+- **Interface Font:** `Instrument Sans`
+- **Code / Runtime Font:** `IBM Plex Mono`
 
-### Projects & Entry Flow
-- **Project Selector First**: The initial project entry surface should prioritize recent work, explicit folder import, and immediate visibility into Codex/runtime readiness before a project is opened.
-- **Project Home as Control Tower**: After opening a project, users land on a project home surface that summarizes branch state, active runtime target, recent sessions, blocked tasks, and quick actions for starting a new orchestrated session.
-- **Clear Transition into Session Work**: Moving from project home into a session must preserve orientation by carrying forward the selected project, active workspace, and current branch/worktree context into the session header.
+### Core Palette
 
-### Projects, Sessions & Task Trees
-- **Hierarchical Sessions**: Multi-chat session systems are represented as an expandable tree in the Secondary Left Pane. Parent chats can expand to show child delegation sessions.
-- **Task Graphs**: Within a session, the orchestrator's execution plan is visualized as a progressive task tree or node graph, clearly indicating states: `Pending`, `Running`, `Blocked`, `Completed`, `Failed`.
+- `ink-950`: `#08090C`
+- `ink-900`: `#101318`
+- `panel-800`: `#171B22`
+- `panel-700`: `#202631`
+- `line-500`: `#364153`
+- `text-strong`: `#F5F7FA`
+- `text-muted`: `#99A4B5`
+- `accent-brass`: `#F5B83D`
+- `accent-ice`: `#6FD6FF`
+- `success-mint`: `#60D394`
+- `warning-amber`: `#FFB84D`
+- `danger-coral`: `#FF6B57`
 
-### Background Child Execution & Intervention Visibility
-- **Non-Blocking Execution**: Child runs delegated to the background must not block the parent chat. They are represented by persistent status indicators in the Bottom Status Panel and badged in the Session Explorer.
-- **Intervention Prominence**: When a task requires human intervention (e.g., requires review, fails, or is paused for manual rerouting), its corresponding node in the task tree and the session tab must visually demand attention (e.g., using a high-contrast native accent color or pulsing indicator).
-- **Live Controls**: Active tasks expose live intervention controls (Pause, Resume, Reroute, Replace, Cancel, Migrate) via inline actions or context menus.
+Use color as signal. Do not flood the interface with saturated accents.
 
-### Git & Worktree Controls
-- **Same-Workspace Defaults**: By default, child sessions implicitly inherit the workspace directory of their parent session. The UI should display the active workspace path subtly in the session header.
-- **Explicit Worktree Switching**: To support parallel AI execution without merge conflicts, users can explicitly switch or assign a Git worktree to a session subtree. This action is exposed via a dedicated dropdown in the Right Pane Inspector. The active worktree branch is badged prominently in the Main Area tab header to prevent context confusion.
+## 3. Layout Model
 
-### Billing & Bags Verification (No Fee-Sharing)
-- **Billing (Paystack)**: Handled in a dedicated view accessible from the Primary Left Rail. Shows current fiat entitlements and tier limits cleanly. *Constraint strictly enforced: No fee-sharing surfaces or UI elements.*
-- **Bags Verification**: Handled in a dedicated view containing connection flows for Bags token linkage and readouts of Bags API verification readiness states. Uses standard WinUI 3 success/warning iconography.
+### Desktop
 
-## 4. UI Design Rules for WinUI 3
-- **Materials**: Use `MicaAlt` for the background of the application to provide a sense of depth and hierarchy, and `Acrylic` for transient surfaces like context menus and flyouts.
-- **Controls**: Use native `NavigationView` for the Primary Rail, `TreeView` for the Session Explorer, and `TabView` for the Main Content Area.
-- **Dark/Light Mode**: Full support for Windows system theme switching. High contrast mode must be fully supported for accessibility.
+- **Primary rail:** product-level navigation and workspace switching
+- **Session explorer:** chat tree and child sessions
+- **Main canvas:** transcript, task graph, artifacts, or recovery flow
+- **Inspector:** context-aware details for workspace, runtime, task, artifact, or billing state
+- **Bottom activity dock:** active runs, audit tail, connectivity, and background tasks
+
+### Browser
+
+- Preserve the same mental model with adaptive collapse:
+  - rails become drawers or segmented panels
+  - inspector becomes a panel or tab
+  - activity dock becomes a stacked tray on smaller screens
+
+## 4. Interaction Patterns
+
+### Projects and Workspaces
+
+- Enter through a workspace-focused selector, not a blank chat box.
+- Show recent workspaces, runtime readiness, and the capability mode of the current shell.
+- If the environment is browser-only, present remote workspace options and clearly explain what is desktop-only.
+
+### Sessions and Task Graphs
+
+- Parent/child sessions belong in a clear tree with status badges and lineage visibility.
+- Task graphs should support both list and graph views when useful, but the underlying state model remains identical.
+- Child sessions running in the background must remain visible without taking over the main canvas.
+
+### Interventions
+
+- Intervention controls must be close to active work, not buried in settings.
+- Approval and recovery prompts should be visually distinct from ordinary assistant content.
+- The user must always know whether an action affects the current session, a child session, or an entire subtree.
+
+### Workspaces and Worktrees
+
+- Same-workspace inheritance should be presented as the default badge on child sessions.
+- Worktree overrides should use stronger visual labeling and require deliberate confirmation.
+- Branch identity belongs in the header and inspector, not hidden in a separate Git page.
+
+## 5. Motion and Feedback
+
+- Use motion to explain state changes:
+  - subtle pulse for active runs
+  - short slide/fade for panel changes
+  - progressive highlight for newly streamed content
+- Keep animations brief and composited. Performance wins over flourish.
+- Avoid heavy blur, oversized shadows, or ornamental glass effects that hurt streaming performance.
+
+## 6. Design-System Rules
+
+- Define tokens in CSS variables first so both Electron and web builds consume the same source of truth.
+- Favor reusable layout primitives over page-specific one-offs.
+- Keep technical surfaces consistent:
+  - transcript blocks
+  - command output cards
+  - file diff summaries
+  - pause/intervention prompts
+  - audit events
+
+## 7. Anti-Patterns
+
+- No generic analytics-dashboard look
+- No desktop-only assumptions in shared UI components
+- No hidden state changes for worktree, runtime, or intervention actions
+- No oversaturated purple-first palettes
+- No design choices that depend on blocking renders or full-surface rerenders during streams

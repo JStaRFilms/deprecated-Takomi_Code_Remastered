@@ -1,65 +1,97 @@
 # Codex Runtime Adapter
 
 ## Overview
-The Codex runtime adapter isolates local Codex CLI execution from the WinUI shell. It owns process launch, Windows-specific fallback behavior, lifecycle event emission, and lifecycle audit logging so the UI can remain orchestration-focused.
 
-## Architecture
-- **Runtime contract:** `src/TakomiCode.Application/Contracts/Runtime/ICodexRuntimeAdapter.cs`
-- **Run request model:** `src/TakomiCode.Application/Contracts/Runtime/CodexRunRequest.cs`
-- **Run result model:** `src/TakomiCode.Application/Contracts/Runtime/CodexRunResult.cs`
-- **Lifecycle events:** `src/TakomiCode.Application/Contracts/Runtime/CodexRuntimeStateEventArgs.cs`
-- **Local adapter:** `src/TakomiCode.RuntimeAdapters/Codex/CodexCliAdapter.cs`
-- **Cloud adapter:** `src/TakomiCode.RuntimeAdapters/Codex/CodexCloudAdapter.cs`
-- **Delegating adapter:** `src/TakomiCode.RuntimeAdapters/Codex/WorkspaceAwareCodexRuntimeAdapter.cs`
+The Codex runtime adapter is the Codex SDK integration layer for Takomi Code. It isolates session creation, runtime streaming, intervention handling, and failure normalization from the shared React UI and orchestration core.
 
-## Key Components
+Codex SDK is the primary runtime integration. This feature doc intentionally treats CLI-style execution as non-central.
 
-### `ICodexRuntimeAdapter`
-Defines the runtime boundary for starting a run, cancelling a run, and subscribing to state and output events.
+## Package Ownership
 
-### `CodexCliAdapter`
-Implements the local Windows runtime path. The adapter:
-- resolves the installed Codex executable with `where.exe`
-- prefers a direct `.exe` launch when available
-- falls back to the Windows command shell for `.cmd` and `.bat` shims
-- emits structured lifecycle state changes
-- captures stdout and stderr as runtime output events
-- appends lifecycle events to the audit log repository with workspace/session/run/chat correlation metadata
+- `packages/contracts`
+  - run request and result types
+  - runtime state events
+  - intervention payloads
+  - transcript part payloads
+- `packages/runtime-codex`
+  - `CodexRuntimeManager` contract
+  - desktop-local adapter
+  - remote adapter
+  - event normalizer
+  - run registry and ownership tracking
+- `packages/orchestration`
+  - run lifecycle coordination
+  - child-run correlation
+- `packages/persistence`
+  - runtime event history
+  - run restore and audit metadata
+- `apps/desktop`
+  - Electron main local runtime host
 
-### `CodexCloudAdapter`
-Implements a mock/proxy for remote execution. This allows for cloud-based orchestration without altering shell logic. It mirrors the local runtime semantics (events, output, interventions) but targets a remote environment and now pauses active work instead of only emitting paused state.
+## Core Contract
 
-### `WorkspaceAwareCodexRuntimeAdapter`
-A delegating facade that routes execution to either the Local or Cloud adapter based on the workspace's `RuntimeTarget` setting. This ensures that the `OrchestratorExecutionEngine` and UI remain target-agnostic.
+`CodexRuntimeManager` must support:
 
-### Failure Handling
-The adapter treats these cases as first-class runtime failures:
-- missing Codex CLI on `PATH` (Local)
-- invalid working directory or request payload
-- authentication-related output from Codex
-- non-zero process exit codes
+- `startRun`
+- `cancelRun`
+- `pauseRun`
+- `resumeRun`
+- `injectGuidance`
+- `rerouteRun`
+- `replaceRun`
+- `migrateRun`
+- `subscribe`
+
+Each implementation must emit the same normalized event stream regardless of whether the runtime is local desktop or remote.
+
+## Event Model
+
+The adapter normalizes Codex SDK output into product events such as:
+
+- `run.starting`
+- `run.streaming`
+- `run.command.started`
+- `run.command.completed`
+- `run.file_changes.updated`
+- `run.pause_requested`
+- `run.paused`
+- `run.resumed`
+- `run.completed`
+- `run.failed`
+- `run.cancelled`
+
+These events power:
+- transcript rendering
+- task graph state
+- intervention affordances
+- audit logging
+- recovery flows
+
+## Desktop and Browser Split
+
+### Desktop
+
+- Electron main hosts local Codex SDK sessions close to the workspace.
+- The renderer requests runtime actions through typed IPC plus shared service abstractions.
+
+### Browser
+
+- The browser build uses a remote transport that exposes the same contract.
+- The UI must not fork its runtime logic based on shell type once the contract is wired.
+
+## Failure Handling
+
+The adapter treats these as first-class failures:
+
+- invalid runtime request payloads
+- workspace access problems
+- authentication or authorization failures
+- transport disconnects
+- non-recoverable Codex SDK session errors
 - explicit cancellation
 
-## Data Flow
+## Acceptance Notes
 
-```mermaid
-flowchart TD
-    A["Shell / Orchestrator"] --> B["ICodexRuntimeAdapter (WorkspaceAware)"]
-    B --> C["CodexCliAdapter"]
-    B --> D["CodexCloudAdapter"]
-    C --> E["Local Codex CLI"]
-    D --> F["Cloud Runtime Endpoint"]
-    C & D --> G["IAuditLogRepository"]
-```
-
-## Current Behavior
-- Runtime state transitions are emitted as `Starting`, `Running`, `Completed`, `Failed`, `Cancelled`, or `Paused`.
-- `CodexRunRequest` carries `WorkspaceId`, orchestration `SessionId`, `RunId`, and optional `ChatSessionId` so both runtime adapters can emit coherent audit trails.
-- Lifecycle transitions are mirrored into audit events using `runtime.*` (Local) or `runtime.cloud.*` (Cloud) event types with the same correlation identifiers across producers.
-- Windows shell mediation is adapter-local and does not leak into UI logic.
-- Runtime target can be switched per workspace, persisting the selection.
-
-## Constraints
-- The Local adapter requires a locally installed Codex CLI.
-- The Cloud adapter is currently a mock for verification and parity testing.
-- Intervention handling (Pause/Resume/Cancel) is supported across both targets.
+- No feature surface should call Codex SDK directly from React components.
+- Runtime ownership must remain explicit so interventions always target the correct run.
+- Desktop-local and remote/browser-safe runtime paths must remain shape-compatible for persistence and audit correlation.
