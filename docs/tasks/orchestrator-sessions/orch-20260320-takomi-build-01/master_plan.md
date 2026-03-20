@@ -121,7 +121,7 @@ When the user comes back with completed work, use this exact control pattern:
 |---|---|---|---|---|---|---|---|
 | 1 | `01_monorepo-foundation.task.md` | Approved | `mode-code` / `vibe-build` | `takomi`, `monorepo-management`, `nextjs-standards` | none | Workspace checks, dev wiring, and verification fallback passed | Task 02 |
 | 2 | `02_contracts-and-schema-lock.task.md` | Approved | `mode-code` / `vibe-build` | `takomi`, `nextjs-standards` | 1 | Package typecheck and runtime schema validation passed | Task 03, plus the parallel 04/06/07 window |
-| 3 | `03_session-bundle-interop.task.md` | Pending | `mode-code` / `vibe-build` | `takomi`, `nextjs-standards` | 2 | Not started | Review |
+| 3 | `03_session-bundle-interop.task.md` | Approved | `mode-code` / `vibe-build` | `takomi`, `nextjs-standards` | 2 | `pnpm typecheck` and session-bundle verification passed | Task 08 unlocked |
 | 4 | `04_shared-v6-shell.task.md` | Pending | `mode-code` / `vibe-build` | `takomi`, `frontend-design`, `nextjs-standards` | 1, 2 | Not started | Review |
 | 5 | `05_transcript-and-runtime-state.task.md` | Pending | `mode-code` / `vibe-build` | `takomi`, `nextjs-standards` | 2, 4 | Not started | Review |
 | 6 | `06_electron-runtime-and-ipc.task.md` | Pending | `mode-code` / `vibe-build` | `takomi`, `nextjs-standards` | 2 | Not started | Review |
@@ -156,7 +156,7 @@ When the user comes back with completed work, use this exact control pattern:
 
 - [x] Task 1 reviewed and approved
 - [x] Task 2 reviewed and approved
-- [ ] Task 3 reviewed and approved
+- [x] Task 3 reviewed and approved
 - [ ] Task 4 reviewed and approved
 - [ ] Task 5 reviewed and approved
 - [ ] Task 6 reviewed and approved
@@ -183,7 +183,10 @@ None recorded yet.
 
 ## Next Tasks Ready To Spawn
 
-1. `03_session-bundle-interop.task.md`
+1. `04_shared-v6-shell.task.md`
+2. `06_electron-runtime-and-ipc.task.md`
+3. `07_web-local-bridge.task.md`
+4. `08_persistence-audit-restore.task.md`
 
 ## Acceptance Snapshot
 

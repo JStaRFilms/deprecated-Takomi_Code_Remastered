@@ -8,13 +8,13 @@ export interface RuntimeRunRequest {
   readonly workspaceId: string;
   readonly projectId: string;
   readonly sessionId: string;
-  readonly taskId?: string;
-  readonly parentRunId?: string | null;
+  readonly taskId?: string | undefined;
+  readonly parentRunId?: string | null | undefined;
   readonly runtimeTarget: RuntimeTarget;
   readonly transport: RuntimeTransport;
-  readonly prompt?: string;
-  readonly agentModeSlug?: string;
-  readonly metadata?: Record<string, unknown>;
+  readonly prompt?: string | undefined;
+  readonly agentModeSlug?: string | undefined;
+  readonly metadata?: Record<string, unknown> | undefined;
 }
 
 export interface RuntimeRunHandle {
@@ -32,25 +32,25 @@ export interface RuntimeGuidanceRequest {
   readonly sessionId: string;
   readonly workspaceId: string;
   readonly instruction: string;
-  readonly context?: string;
+  readonly context?: string | undefined;
 }
 
 export interface RuntimeRerouteRequest {
   readonly runId: string;
   readonly sessionId: string;
   readonly workspaceId: string;
-  readonly destinationSessionId?: string;
-  readonly destinationRunId?: string;
-  readonly reason?: string;
+  readonly destinationSessionId?: string | undefined;
+  readonly destinationRunId?: string | undefined;
+  readonly reason?: string | undefined;
 }
 
 export interface RuntimeReplaceRequest {
   readonly runId: string;
   readonly sessionId: string;
   readonly workspaceId: string;
-  readonly replacementSessionId?: string;
-  readonly replacementModeSlug?: string;
-  readonly reason?: string;
+  readonly replacementSessionId?: string | undefined;
+  readonly replacementModeSlug?: string | undefined;
+  readonly reason?: string | undefined;
 }
 
 export interface RuntimeMigrateRequest {
@@ -58,8 +58,8 @@ export interface RuntimeMigrateRequest {
   readonly sessionId: string;
   readonly workspaceId: string;
   readonly destinationWorkspaceId: string;
-  readonly destinationWorktreeId?: string;
-  readonly reason?: string;
+  readonly destinationWorktreeId?: string | undefined;
+  readonly reason?: string | undefined;
 }
 
 export interface NormalizedRuntimeEvent {
@@ -67,8 +67,8 @@ export interface NormalizedRuntimeEvent {
   readonly runId: string;
   readonly sessionId: string;
   readonly workspaceId: string;
-  readonly projectId?: string;
-  readonly taskId?: string;
+  readonly projectId?: string | undefined;
+  readonly taskId?: string | undefined;
   readonly runtimeTarget: RuntimeTarget;
   readonly transport: RuntimeTransport;
   readonly kind: NormalizedRuntimeEventKind;

@@ -30,10 +30,10 @@ export interface WorkspaceReference {
 export interface GitState {
   readonly branchName: string;
   readonly dirty: boolean;
-  readonly headSha?: string;
-  readonly upstreamBranchName?: string;
-  readonly aheadCount?: number;
-  readonly behindCount?: number;
+  readonly headSha?: string | undefined;
+  readonly upstreamBranchName?: string | undefined;
+  readonly aheadCount?: number | undefined;
+  readonly behindCount?: number | undefined;
 }
 
 export interface WorktreeReference {
@@ -41,25 +41,25 @@ export interface WorktreeReference {
   readonly workspaceId: string;
   readonly rootPath: string;
   readonly branchName: string;
-  readonly headSha?: string;
+  readonly headSha?: string | undefined;
   readonly dirty: boolean;
   readonly active: boolean;
   readonly explicit: boolean;
   readonly parentWorktreeId: string | null;
   readonly inheritedFromWorkspaceId: string | null;
-  readonly createdAt?: string;
+  readonly createdAt?: string | undefined;
 }
 
 export interface WorkspaceDescriptor extends WorkspaceReference {
   readonly target: ShellTarget;
-  readonly branchName?: string | null;
-  readonly dirty?: boolean;
-  readonly currentWorktreeId?: string | null;
-  readonly git?: GitState;
-  readonly capabilities?: ShellCapabilities;
-  readonly worktrees?: readonly WorktreeReference[];
-  readonly createdAt?: string;
-  readonly updatedAt?: string;
+  readonly branchName?: string | null | undefined;
+  readonly dirty?: boolean | undefined;
+  readonly currentWorktreeId?: string | null | undefined;
+  readonly git?: GitState | undefined;
+  readonly capabilities?: ShellCapabilities | undefined;
+  readonly worktrees?: readonly WorktreeReference[] | undefined;
+  readonly createdAt?: string | undefined;
+  readonly updatedAt?: string | undefined;
 }
 
 export interface ProjectDescriptor {

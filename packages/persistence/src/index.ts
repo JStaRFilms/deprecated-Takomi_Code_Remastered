@@ -37,3 +37,5 @@ export function createPersistenceBundle(): PersistenceBundle {
     auditEvents: createMemoryRepository<AuditEvent>()
   };
 }
+
+export * from './interop.js';

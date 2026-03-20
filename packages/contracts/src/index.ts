@@ -1,6 +1,7 @@
 export * from './constants.js';
 export * from './workspace.js';
 export * from './session.js';
+export * from './session-bundle.js';
 export * from './task-graph.js';
 export * from './intervention.js';
 export * from './audit.js';

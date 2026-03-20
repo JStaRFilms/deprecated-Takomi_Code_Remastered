@@ -24,12 +24,12 @@ export interface SessionDescriptor {
   readonly status: SessionStatus;
   readonly workspaceId: string;
   readonly worktreePath: string | null;
-  readonly runtimeTarget?: RuntimeTarget;
-  readonly worktreeId?: string | null;
-  readonly lineage?: SessionLineage;
-  readonly createdAt?: string;
-  readonly updatedAt?: string;
-  readonly closedAt?: string | null;
+  readonly runtimeTarget?: RuntimeTarget | undefined;
+  readonly worktreeId?: string | null | undefined;
+  readonly lineage?: SessionLineage | undefined;
+  readonly createdAt?: string | undefined;
+  readonly updatedAt?: string | undefined;
+  readonly closedAt?: string | null | undefined;
 }
 
 export interface TranscriptTextPart {
@@ -39,8 +39,8 @@ export interface TranscriptTextPart {
   readonly role: TranscriptPartRole;
   readonly text: string;
   readonly timestamp: string;
-  readonly runId?: string;
-  readonly taskId?: string;
+  readonly runId?: string | undefined;
+  readonly taskId?: string | undefined;
 }
 
 export interface TranscriptToolCallPart {
@@ -50,8 +50,8 @@ export interface TranscriptToolCallPart {
   readonly toolName: string;
   readonly input: Record<string, unknown>;
   readonly timestamp: string;
-  readonly runId?: string;
-  readonly taskId?: string;
+  readonly runId?: string | undefined;
+  readonly taskId?: string | undefined;
 }
 
 export interface TranscriptToolResultPart {
@@ -59,10 +59,10 @@ export interface TranscriptToolResultPart {
   readonly id: string;
   readonly sessionId: string;
   readonly toolName: string;
-  readonly output: unknown;
+  readonly output?: unknown | undefined;
   readonly timestamp: string;
-  readonly runId?: string;
-  readonly taskId?: string;
+  readonly runId?: string | undefined;
+  readonly taskId?: string | undefined;
 }
 
 export interface TranscriptArtifactPart {
@@ -70,10 +70,10 @@ export interface TranscriptArtifactPart {
   readonly id: string;
   readonly sessionId: string;
   readonly artifactId: string;
-  readonly label?: string;
+  readonly label?: string | undefined;
   readonly timestamp: string;
-  readonly runId?: string;
-  readonly taskId?: string;
+  readonly runId?: string | undefined;
+  readonly taskId?: string | undefined;
 }
 
 export interface TranscriptStatusPart {
@@ -81,10 +81,20 @@ export interface TranscriptStatusPart {
   readonly id: string;
   readonly sessionId: string;
   readonly status: string;
-  readonly message?: string;
+  readonly message?: string | undefined;
   readonly timestamp: string;
-  readonly runId?: string;
-  readonly taskId?: string;
+  readonly runId?: string | undefined;
+  readonly taskId?: string | undefined;
+}
+
+export interface TranscriptSystemPart {
+  readonly kind: 'system';
+  readonly id: string;
+  readonly sessionId: string;
+  readonly message: string;
+  readonly timestamp: string;
+  readonly runId?: string | undefined;
+  readonly taskId?: string | undefined;
 }
 
 export type TranscriptPart =
@@ -92,7 +102,8 @@ export type TranscriptPart =
   | TranscriptToolCallPart
   | TranscriptToolResultPart
   | TranscriptArtifactPart
-  | TranscriptStatusPart;
+  | TranscriptStatusPart
+  | TranscriptSystemPart;
 
 export interface TranscriptSnapshot {
   readonly sessionId: string;

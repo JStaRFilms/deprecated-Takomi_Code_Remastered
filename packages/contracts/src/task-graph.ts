@@ -29,7 +29,7 @@ export interface TaskGraphArtifact {
   readonly kind: 'document' | 'patch' | 'log' | 'bundle';
   readonly name: string;
   readonly uri: string;
-  readonly createdAt?: string;
+  readonly createdAt?: string | undefined;
 }
 
 export interface OrchestrationSession {

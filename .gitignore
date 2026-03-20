@@ -27,6 +27,10 @@ build/
 coverage/
 .npm
 *.log
+packages/**/src/*.js
+packages/**/src/*.d.ts
+packages/**/src/*.d.ts.map
+packages/**/tsconfig.tsbuildinfo
 
 # --- IDEs ---
 .vscode/

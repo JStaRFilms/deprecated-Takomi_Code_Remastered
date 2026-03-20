@@ -18,6 +18,7 @@ import {
   TRANSCRIPT_PART_ROLES
 } from './constants.js';
 import type { IpcChannel } from './constants.js';
+import { TAKOMI_SESSION_BUNDLE_SCHEMA_VERSION } from './session-bundle.js';
 
 const unknownRecordSchema = z.record(z.unknown());
 const ipcChannelValues = Object.values(IPC_CHANNELS) as [IpcChannel, ...IpcChannel[]];
@@ -205,12 +206,21 @@ export const TranscriptStatusPartSchema = z
   })
   .strict();
 
+export const TranscriptSystemPartSchema = z
+  .object({
+    ...transcriptBase,
+    kind: z.literal('system'),
+    message: z.string()
+  })
+  .strict();
+
 export const TranscriptPartSchema = z.discriminatedUnion('kind', [
   TranscriptTextPartSchema,
   TranscriptToolCallPartSchema,
   TranscriptToolResultPartSchema,
   TranscriptArtifactPartSchema,
-  TranscriptStatusPartSchema
+  TranscriptStatusPartSchema,
+  TranscriptSystemPartSchema
 ]);
 
 export const TranscriptSnapshotSchema = z
@@ -610,6 +620,36 @@ export const TakomiAgentDefaultsBundleSchema = z
     modes: z.array(TakomiAgentModeDefinitionSchema),
     settings: TakomiAgentDefaultSettingsSchema,
     sources: z.array(TakomiAgentDefaultsSourceSchema)
+  })
+  .strict();
+
+export const TakomiSessionBundleMetadataSchema = z
+  .object({
+    bundleId: z.string(),
+    exportedAt: z.string(),
+    exportedBy: z.string(),
+    sourceKind: z.enum(['takomi', 'foreign-codex']),
+    sourceLabel: z.string().optional(),
+    sourceAdapter: z.string().optional(),
+    sourceVersion: z.string().optional(),
+    compatibilityNotes: z.array(z.string()).optional()
+  })
+  .strict();
+
+export const TakomiSessionBundleWorkspaceSchema = WorkspaceDescriptorSchema.extend({
+  worktrees: z.array(WorktreeReferenceSchema)
+}).strict();
+
+export const TakomiSessionBundleV1Schema = z
+  .object({
+    schemaVersion: z.literal(TAKOMI_SESSION_BUNDLE_SCHEMA_VERSION),
+    metadata: TakomiSessionBundleMetadataSchema,
+    session: SessionDescriptorSchema,
+    transcript: TranscriptSnapshotSchema,
+    runtimeEvents: z.array(NormalizedRuntimeEventSchema),
+    artifacts: z.array(TaskGraphArtifactSchema),
+    auditEvents: z.array(AuditEventEnvelopeSchema),
+    workspace: TakomiSessionBundleWorkspaceSchema
   })
   .strict();
 
