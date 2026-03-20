@@ -14,13 +14,16 @@
     "verify:contracts": "node scripts/verify-contracts.mjs",
     "verify:session-bundle": "node scripts/verify-session-bundle.mjs",
     "verify:transcript-runtime-state": "node scripts/verify-transcript-runtime-state.mjs",
+    "verify:desktop-runtime-ipc": "node --import tsx/esm scripts/verify-desktop-runtime-ipc.mjs",
     "lint": "node scripts/lint.mjs",
     "format": "node scripts/format.mjs",
     "verify": "python scripts/vibe-verify.py"
   },
   "devDependencies": {
+    "@types/node": "^22.15.2",
     "@types/react": "^19.2.14",
     "@types/react-dom": "^19.2.3",
+    "electron": "^35.1.5",
     "tsx": "^4.21.0",
     "typescript": "^5.9.3"
   },

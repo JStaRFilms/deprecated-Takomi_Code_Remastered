@@ -1,23 +1,32 @@
-import type { RuntimeEventEnvelope, RuntimeTransport } from '@takomi/contracts';
+import type { 
+  RuntimeEventEnvelope, 
+  RuntimeTransport,
+  RuntimeRunHandle,
+  RuntimeRunRequest,
+  RuntimeGuidanceRequest,
+  RuntimeRerouteRequest,
+  RuntimeReplaceRequest,
+  RuntimeMigrateRequest,
+  RuntimeSessionRequest,
+  RuntimeSessionHandle,
+  RuntimeEventListener,
+  RuntimeSubscription,
+} from '@takomi/contracts';
 
 export * from './state-map.js';
-
-export interface RuntimeSessionRequest {
-  readonly workspaceId: string;
-  readonly projectId: string;
-  readonly sessionId: string;
-  readonly transport: RuntimeTransport;
-}
-
-export interface RuntimeSessionHandle {
-  readonly sessionId: string;
-  readonly transport: RuntimeTransport;
-  readonly startedAt: string;
-}
 
 export interface CodexRuntimeManager {
   readonly kind: 'desktop-local' | 'remote';
   startSession(request: RuntimeSessionRequest): Promise<RuntimeSessionHandle>;
+  startRun(request: RuntimeRunRequest): Promise<RuntimeRunHandle>;
+  cancelRun(runId: string): Promise<void>;
+  pauseRun(runId: string): Promise<void>;
+  resumeRun(runId: string): Promise<void>;
+  injectGuidance(request: RuntimeGuidanceRequest): Promise<void>;
+  rerouteRun(request: RuntimeRerouteRequest): Promise<void>;
+  replaceRun(request: RuntimeReplaceRequest): Promise<void>;
+  migrateRun(request: RuntimeMigrateRequest): Promise<void>;
+  subscribe(listener: RuntimeEventListener): RuntimeSubscription;
   pushEvent(event: RuntimeEventEnvelope): Promise<void>;
   closeSession(sessionId: string): Promise<void>;
 }

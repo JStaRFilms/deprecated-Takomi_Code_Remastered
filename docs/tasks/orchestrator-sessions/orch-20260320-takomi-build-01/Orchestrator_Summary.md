@@ -1,7 +1,7 @@
 # Orchestrator Summary
 
 **Session ID:** `orch-20260320-takomi-build-01`  
-**Status:** Review-gated orchestration manager active, Tasks 01 through 05 approved  
+**Status:** Review-gated orchestration manager active, Tasks 01 through 06 approved  
 **Mode:** `mode-orchestrator`
 
 ## Operating Mode
@@ -22,7 +22,7 @@ This session now acts as the review gatekeeper:
 | 03 Session bundle interop | Approved | Bundle contract and import/export helpers verified |
 | 04 Shared v6 shell | Approved | Shared v6 workspace shell is now rendering in both live mounts with mock data and passing verification |
 | 05 Transcript and runtime state | Approved | Transcript blocks, runtime presentation state, and windowed store behavior verified and patched during review |
-| 06 Electron runtime and IPC | Pending | Waiting on Task 02 |
+| 06 Electron runtime and IPC | Approved | Electron main/preload, desktop-local runtime host, real default-agent loading, and headless Electron boot verification passed after review fixes |
 | 07 Web local bridge | Pending | Waiting on Task 02 |
 | 08 Persistence, audit, restore | Pending | Waiting on Tasks 02 and 03 |
 | 09 Orchestration engine | Pending | Waiting on Tasks 02, 05, 06, 07, and 08 |
@@ -34,9 +34,9 @@ This session now acts as the review gatekeeper:
 
 ## Build Status
 
-- Desktop build: Shared v6 shell live in dev mount
+- Desktop build: Electron main/preload/runtime foundation verified with real Electron boot
 - Web-local build: Scaffolded
-- Codex runtime parity: Scaffolded
+- Codex runtime parity: Desktop-local mock host verified; remote path still scaffolded
 - V6 workspace fidelity: Approved mock-data shell foundation
 - Interop bundle status: Approved foundation
 
@@ -77,11 +77,19 @@ Task 05 review passed after direct fixes for:
 - app bootstraps and TypeScript project references so the runtime-state package is consumed correctly by both web and desktop mounts
 - executable verification via `pnpm verify:transcript-runtime-state`
 
+Task 06 review passed after direct fixes for:
+
+- Electron binary installation and real desktop boot verification
+- package export and TypeScript output-path alignment so runtime packages resolve correctly at execution time
+- desktop dev wiring so `pnpm dev:desktop` compiles the app, serves the shared renderer, and launches the actual Electron shell
+- `.agent/Takomi-Agents` defaults loading through a typed desktop bridge payload instead of placeholder data
+- executable verification via `pnpm verify:desktop-runtime-ipc`
+
 ## Current Gate
 
-- Task `05` is approved
-- Tasks `06`, `07`, `08`, and `12` are the active green-lit queue
-- Task `09` is still blocked until `06`, `07`, and `08` are also approved
+- Task `06` is approved
+- Tasks `07`, `08`, and `12` are the active green-lit queue
+- Task `09` is still blocked until `07` and `08` are also approved
 
 ## Risks And Blockers
 
@@ -89,4 +97,4 @@ Task 05 review passed after direct fixes for:
 
 ## Recommended Next Wave
 
-Next best delegation options are `06_electron-runtime-and-ipc.task.md`, `07_web-local-bridge.task.md`, `08_persistence-audit-restore.task.md`, and `12_runtime-settings-billing-bags.task.md`. Task `06` is the most direct path toward unlocking the orchestration engine gate.
+Next best delegation options are `07_web-local-bridge.task.md`, `08_persistence-audit-restore.task.md`, and `12_runtime-settings-billing-bags.task.md`. Task `07` is the strongest next unlock because it moves the browser shell closer to parity with the now-approved desktop runtime path.
