@@ -1,0 +1,683 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="UTF-8">
+  <title>Takomi Chat UI States V5</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            appBg: 'var(--app-bg)',
+            appPanel: 'var(--app-panel)',
+            appBorder: 'var(--app-border)',
+            appHover: 'var(--app-hover)',
+            appText: 'var(--app-text)',
+            appMuted: 'var(--app-muted)',
+            appItemBg: 'var(--app-item-bg)',
+            appTerminalBg: 'var(--app-terminal-bg)',
+            appTerminalHeader: 'var(--app-terminal-header)',
+            takomiAccent: 'var(--takomi-accent)',
+            takomiAccentSoft: 'var(--takomi-accent-soft)',
+          },
+          fontFamily: {
+            sans: ['Inter', 'sans-serif'],
+            mono: ['JetBrains Mono', 'monospace'],
+          },
+          transitionTimingFunction: {
+            'spring': 'cubic-bezier(0.34, 1.56, 0.64, 1)',
+          }
+        }
+      }
+    }
+  </script>
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --app-bg: #FFFFFF;
+      --app-panel: #F8FAFC;
+      --app-border: #E2E8F0;
+      --app-hover: #F1F5F9;
+      --app-text: #0F172A;
+      --app-muted: #64748B;
+      --app-item-bg: #FFFFFF;
+      --app-terminal-bg: #F8FAFC;
+      --app-terminal-header: #E2E8F0;
+      --takomi-accent: #D97706; /* Yellow 600 for light mode contrast */
+      --takomi-accent-soft: #FEF3C7; /* Yellow 100 for light mode background */
+    }
+    
+    .dark {
+      /* V6 blend: deeper background, softer borders */
+      --app-bg: #0C0C0D;
+      --app-panel: #151516;
+      --app-border: rgba(255, 255, 255, 0.05); /* #27272A */
+      --app-hover: rgba(255, 255, 255, 0.05); /* #1F1F22 */
+      --app-text: #E5E5E5;
+      --app-muted: #94A3B8;
+      --app-item-bg: #1E1E1F;
+      --app-terminal-bg: #0C0C0D;
+      --app-terminal-header: #151516;
+      --takomi-accent: #FACC15; /* Yellow 400 for dark mode */
+      --takomi-accent-soft: rgba(250, 204, 21, 0.15); /* Translucent yellow for dark mode bg */
+    }
+    
+    body { font-family: 'Inter', sans-serif; background-color: var(--app-bg); color: var(--app-text); transition: background-color 0.3s, color 0.3s; }
+    .mono { font-family: 'JetBrains Mono', monospace; }
+    
+    .scrollbar-hide::-webkit-scrollbar { display: none; }
+    .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
+    
+    .custom-scrollbar::-webkit-scrollbar { width: 6px; }
+    .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
+    .custom-scrollbar::-webkit-scrollbar-thumb { background-color: rgba(255,255,255,0.1); border-radius: 3px; }
+    .custom-scrollbar::-webkit-scrollbar-thumb:hover { background-color: rgba(255,255,255,0.2); }
+    html:not(.dark) .custom-scrollbar::-webkit-scrollbar-thumb { background-color: rgba(0,0,0,0.15); }
+    html:not(.dark) .custom-scrollbar::-webkit-scrollbar-thumb:hover { background-color: rgba(0,0,0,0.25); }
+    
+    *:focus-visible { outline: none !important; }
+
+    .markdown-content p { margin-bottom: 1rem; line-height: 1.6; }
+    .markdown-content p:last-child { margin-bottom: 0; }
+    .markdown-content code:not(pre code) { 
+      background: var(--app-item-bg); 
+      border: 1px solid var(--app-border);
+      padding: 0.125rem 0.375rem; 
+      border-radius: 0.375rem; 
+      font-family: 'JetBrains Mono', monospace; 
+      font-size: 0.85em; 
+      color: var(--app-text);
+      font-weight: 500;
+      box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+    }
+    
+    pre code {
+      display: block;
+      background: #0C0C0D; /* Always dark terminal block */
+      color: #E5E5E5;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      padding: 1.25rem;
+      border-radius: 0.75rem;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.85em;
+      line-height: 1.6;
+      overflow-x: auto;
+      margin-bottom: 1.25rem;
+      box-shadow: inset 0 2px 4px rgba(0,0,0,0.2);
+    }
+    html:not(.dark) pre code {
+      box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1), 0 2px 4px -1px rgba(0,0,0,0.06);
+    }
+
+    .markdown-content a { color: var(--takomi-accent); text-decoration: none; font-weight: 500; }
+    .markdown-content a:hover { text-decoration: underline; }
+    
+    .markdown-content ul { 
+      list-style-type: none; 
+      padding-left: 0; 
+      margin-bottom: 1.25rem; 
+      display: flex; 
+      flex-direction: column; 
+      gap: 0.5rem; 
+    }
+    .markdown-content ul li { 
+      position: relative; 
+      padding: 0.5rem 0.75rem; 
+      background: var(--app-item-bg); 
+      border: 1px solid var(--app-border); 
+      border-radius: 0.5rem; 
+      font-family: 'JetBrains Mono', monospace; 
+      font-size: 0.825em; 
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      color: var(--app-text);
+      box-shadow: 0 1px 2px rgba(0,0,0,0.02);
+      width: fit-content;
+      max-width: 100%;
+      word-break: break-all;
+    }
+    .markdown-content ul li::before { 
+      /* File code icon to make paths look like artifacts */
+      content: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="%2394A3B8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline></svg>'); 
+      display: flex;
+      align-items: center;
+      opacity: 0.7;
+      flex-shrink: 0;
+    }
+
+    .loading-dots:after { content: '.'; animation: dots 1.5s steps(5, end) infinite; }
+    @keyframes dots {
+      0%, 20% { color: transparent; text-shadow: .25em 0 0 transparent, .5em 0 0 transparent;}
+      40% { color: inherit; text-shadow: .25em 0 0 transparent, .5em 0 0 transparent;}
+      60% { text-shadow: .25em 0 0 inherit, .5em 0 0 transparent;}
+      80%, 100% { text-shadow: .25em 0 0 inherit, .5em 0 0 inherit;}
+    }
+
+    [data-state-btn].active { background-color: var(--app-border); color: var(--app-text); }
+  </style>
+</head>
+<body class="flex h-screen overflow-hidden text-sm selection:bg-takomiAccentSoft">
+
+  <!-- Sidebar -->
+  <div class="w-64 bg-appBg border-r border-appBorder flex flex-col z-50 overflow-y-auto shrink-0 custom-scrollbar">
+    <div class="p-4 border-b border-appBorder font-medium flex items-center gap-2 sticky top-0 bg-appBg/90 backdrop-blur z-10">
+      <div class="w-6 h-6 rounded-md bg-takomiAccent flex items-center justify-center text-[#0C0C0D] shadow shadow-takomiAccent/20">
+        <i data-lucide="layout" class="w-3.5 h-3.5"></i>
+      </div>
+      <span class="font-semibold tracking-wide">Takomi V5 Mockups</span>
+    </div>
+    <div id="state-list" class="flex flex-col p-2 gap-0.5 text-[13px] text-appMuted">
+      <!-- Populated by JS -->
+    </div>
+  </div>
+
+  <!-- Main View -->
+  <div class="flex-1 flex flex-col relative h-full bg-appPanel overflow-hidden">
+    
+    <!-- Top Header (Workplace context only, calm) -->
+    <header class="h-14 flex items-center justify-between px-6 border-b border-appBorder bg-appPanel/50 backdrop-blur sticky top-0 z-20 shrink-0">
+      <div class="flex items-center gap-2 text-sm">
+        <span class="font-medium text-appMuted">Takomi_Code</span>
+        <span class="text-appBorder">/</span>
+        <div class="flex items-center gap-1.5 bg-appItemBg px-2 py-0.5 rounded border border-appBorder">
+           <div class="w-1.5 h-1.5 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]"></div>
+           <span class="text-xs font-mono text-appText uppercase tracking-tight" id="header-status-text">main</span>
+        </div>
+      </div>
+      <div class="flex items-center gap-3">
+        <div class="flex items-center gap-1 bg-takomiAccentSoft text-takomiAccent px-2 py-1 rounded text-xs font-bold uppercase tracking-wider hidden" id="header-run-badge">
+           <span class="w-2 h-2 rounded-full bg-takomiAccent animate-pulse inline-block mr-1"></span> RUN ACTIVE
+        </div>
+        <button id="theme-toggle" class="p-2 rounded-xl border border-transparent hover:border-appBorder hover:bg-appItemBg text-appMuted hover:text-appText transition-all" onclick="toggleTheme()" title="Toggle Light/Dark Mode">
+          <i data-lucide="sun" class="w-4 h-4 hidden dark:block"></i>
+          <i data-lucide="moon" class="w-4 h-4 block dark:hidden"></i>
+        </button>
+      </div>
+    </header>
+
+    <!-- Transcript / Narrative Surface -->
+    <main class="flex-1 overflow-y-auto w-full custom-scrollbar relative bg-appPanel" id="transcript-scroll">
+      <div class="max-w-4xl mx-auto py-8 px-6 flex flex-col gap-8 pb-56" id="transcript-container">
+        <!-- Messages rendered here -->
+      </div>
+    </main>
+
+    <!-- Bottom Ticker & Composer Wrapper -->
+    <div class="w-full absolute flex flex-col items-center bottom-0 left-0 right-0 pointer-events-none z-30">
+      
+      <!-- Gradient Fade to make text readable behind composer -->
+      <div class="w-full h-48 bg-gradient-to-t from-appPanel via-appPanel/90 to-transparent absolute bottom-0 left-0 right-0 -z-10"></div>
+      
+      <div class="w-full max-w-4xl px-6 pb-6 flex flex-col gap-3 pointer-events-auto relative mt-auto">
+        
+        <!-- Bottom Ticker (Compact & Machine-like) -->
+        <div id="bottom-ticker-container" class="h-6 flex items-center transition-all duration-300 transform translate-y-2 opacity-0 text-[11px] mono text-appMuted uppercase tracking-widest hidden ml-2">
+          <!-- JS rendered -->
+        </div>
+
+        <!-- 21st.dev Style Premium Composer -->
+        <div class="w-full rounded-3xl border border-black/10 dark:border-white/10 bg-white dark:bg-[#1E1E1F]/90 dark:backdrop-blur-xl p-2 shadow-[0_20px_50px_-12px_rgba(0,0,0,0.5)] transition-all duration-300 pointer-events-auto">
+          
+          <div id="composer-attachments" class="flex gap-2 flex-wrap items-center px-1 mb-1 empty:hidden"></div>
+          
+          <textarea id="composer-input" rows="1" class="flex w-full rounded-md border-none bg-transparent px-4 py-3 text-[15px] text-appText placeholder:text-appMuted focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50 min-h-[44px] resize-none overflow-hidden" placeholder="Type your message here..."></textarea>
+          
+          <div class="flex items-center justify-between px-2 pt-2">
+            <!-- Left Actions -->
+            <div class="flex items-center gap-1 transition-opacity duration-300">
+              <button class="relative flex h-8 w-8 text-appMuted cursor-pointer items-center justify-center rounded-xl transition-all duration-200 hover:bg-black/5 dark:hover:bg-white/10 hover:text-black dark:hover:text-white hover:scale-105 active:scale-95 group">
+                <i data-lucide="paperclip" class="h-4 w-4"></i>
+              </button>
+
+              <div class="relative h-4 w-px mx-1 bg-black/10 dark:bg-white/10"></div>
+
+              <button class="rounded-xl flex items-center gap-2 px-3 py-1.5 text-[11px] font-bold uppercase tracking-wider text-appMuted hover:text-takomiAccent hover:bg-takomiAccentSoft transition-all group">
+                <i data-lucide="globe" class="w-3.5 h-3.5 group-hover:rotate-12 transition-transform"></i> Search
+              </button>
+              
+              <button class="rounded-xl flex items-center gap-2 px-3 py-1.5 text-[11px] font-bold uppercase tracking-wider text-appMuted hover:text-[#8B5CF6] hover:bg-[#8B5CF6]/10 transition-all group">
+                <i data-lucide="brain-cog" class="w-3.5 h-3.5 group-hover:rotate-12 transition-transform"></i> Think
+              </button>
+            </div>
+
+            <!-- Right Actions -->
+            <div id="composer-actions" class="flex items-center">
+               <!-- JS rendered -->
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    function toggleTheme() { document.documentElement.classList.toggle('dark'); }
+
+    // Map the 14 states corresponding to real Takomi Runtime / SDK specs
+    const states = [
+      {
+        id: 'idle',
+        name: '1. Idle, empty draft',
+        header: { active: false },
+        transcript: [],
+        ticker: null,
+        composer: { text: '', placeholder: 'Type your message...', mode: 'send' }
+      },
+      {
+        id: 'draft',
+        name: '2. Draft ready to send',
+        header: { active: false },
+        transcript: [],
+        ticker: null,
+        attachments: [ { name: 'codex_sdk_state_map.md', size: '2 KB', icon: 'file-text' } ],
+        composer: { text: 'Update the auth flow based on the spec in the attached file.', placeholder: 'Type your message...', mode: 'send' }
+      },
+      {
+        id: 'starting',
+        name: '3. Starting run',
+        header: { active: true },
+        transcript: [
+          { role: 'user', content: 'Scan the project files and map the current architecture.' }
+        ],
+        ticker: 'Starting session run',
+        composer: { text: '', placeholder: 'Takomi is running...', mode: 'stop' }
+      },
+      {
+        id: 'thinking',
+        name: '4. Running with thinking/reasoning',
+        header: { active: true },
+        transcript: [
+          { role: 'user', content: 'What is the best way to handle auth here?' },
+          { role: 'assistant', completed: false, turnStatus: 'in_progress', parts: [
+            { type: 'thought', status: 'in_progress', text: 'To determine the best auth strategy, I should review the existing middleware... We could use JWT tokens or session cookies. Since the frontend is SPA, JWT is common. Let me outline the pros and cons.' }
+          ]}
+        ],
+        ticker: null,
+        composer: { text: '', placeholder: 'Takomi is thinking...', mode: 'stop' }
+      },
+      {
+        id: 'command',
+        name: '5. Running with command execution',
+        header: { active: true },
+        transcript: [
+          { role: 'user', content: 'Run the tests for the login component.' },
+          { role: 'assistant', completed: false, turnStatus: 'in_progress', parts: [
+            { type: 'command', status: 'in_progress', command: 'npm test -- src/components/Login.test.tsx', logs: '> jest\nPASS src/components/Login.test.tsx\n  Login\n    ✓ renders correctly\n\nTest Suites: 1 passed, 1 total\nTime: 1.2s' }
+          ]}
+        ],
+        ticker: 'Running command...',
+        composer: { text: '', placeholder: 'Takomi is executing command...', mode: 'stop' }
+      },
+      {
+        id: 'file_change',
+        name: '6. Running with file changes',
+        header: { active: true },
+        transcript: [
+          { role: 'user', content: 'Update the main CSS file to use dark mode variables.' },
+          { role: 'assistant', completed: false, turnStatus: 'in_progress', parts: [
+            { type: 'file_diff_card', count: 4, status: 'in_progress', files: [
+                { path: 'src/TakomiCode.UI/Views/SessionsWorkspaceView.xaml', label: 'Modifying...' },
+                { path: 'src/TakomiCode.UI/ViewModels/MainViewModel.cs', label: 'Pending...' }
+            ]}
+          ]}
+        ],
+        ticker: 'Applying modifications to files...',
+        composer: { text: '', placeholder: 'Takomi is making file changes...', mode: 'stop' }
+      },
+      {
+        id: 'interleaved',
+        name: '7. Interleaved stream & tools',
+        header: { active: true },
+        transcript: [
+          { role: 'user', content: 'Find why the build fails and fix it.' },
+          { role: 'assistant', completed: false, turnStatus: 'in_progress', parts: [
+            { type: 'text', content: 'I will run the build command to inspect the error.' },
+            { type: 'command', status: 'completed', command: 'npm run build', logs: 'Error: Cannot find module "uuid"' },
+            { type: 'text', content: 'It seems the `uuid` module is not installed. Let me install it.' },
+            { type: 'command', status: 'completed', command: 'npm install uuid @types/uuid', logs: 'added 2 packages' },
+            { type: 'file_diff_card', count: 1, status: 'completed', files: [
+                { path: 'package.json', label: 'Completed' }
+            ]},
+            { type: 'text', content: 'Now the build should ', streaming: true }
+          ]}
+        ],
+        ticker: 'Generating text response',
+        composer: { text: '', placeholder: 'Takomi is running...', mode: 'stop' }
+      },
+      {
+        id: 'completed',
+        name: '8. Completed successfully',
+        header: { active: false },
+        transcript: [
+          { role: 'user', content: 'Switch all instances of class to className in the header.' },
+          { role: 'assistant', completed: true, turnStatus: 'completed', parts: [
+            { type: 'text', content: 'I have updated the `class` attributes to `className` in the React components.' },
+            { type: 'file_diff_card', count: 2, status: 'completed', files: [
+                { path: 'src/components/Header.tsx', label: 'Updated (+2 -2)' },
+                { path: 'src/components/Footer.tsx', label: 'Updated (+2 -2)' }
+            ]}
+          ]}
+        ],
+        ticker: null,
+        composer: { text: '', placeholder: 'Type your message...', mode: 'send' }
+      },
+      {
+        id: 'failed',
+        name: '9. Failed',
+        header: { active: false },
+        transcript: [
+          { role: 'user', content: 'Fetch the latest logs from the remote server.' },
+          { role: 'assistant', completed: true, turnStatus: 'failed', parts: [
+            { type: 'command', status: 'failed', command: 'ssh user@prod "cat /var/log/syslog"', logs: 'ssh: connect to host prod port 22: Connection refused' }
+          ]}
+        ],
+        ticker: null,
+        composer: { text: '', placeholder: 'Type your message...', mode: 'send' }
+      },
+      {
+        id: 'cancelled',
+        name: '10. Cancelled',
+        header: { active: false },
+        transcript: [
+          { role: 'user', content: 'Write a massive unit test suite for the entire app.' },
+          { role: 'assistant', completed: true, turnStatus: 'cancelled', parts: [
+            { type: 'text', content: 'I will begin creating the tests by looking at `src/`...' }
+          ]}
+        ],
+        ticker: null,
+        composer: { text: '', placeholder: 'Type your message...', mode: 'send' }
+      },
+      {
+        id: 'paused',
+        name: '11. Paused/resumable',
+        header: { active: false, paused: true },
+        transcript: [
+          { role: 'user', content: 'Deploy the database migrations to production.' },
+          { role: 'assistant', completed: false, turnStatus: 'paused', parts: [
+            { type: 'command', status: 'completed', command: 'npx prisma generate', logs: 'Prisma Client generated successfully.' },
+            { type: 'text', content: 'The client is ready. I need your confirmation before running the deploy.' },
+            { type: 'pause_request', text: 'Waiting for approval to run command: npx prisma migrate deploy' }
+          ]}
+        ],
+        ticker: 'Run paused pending user input',
+        composer: { text: '', placeholder: 'Run is paused. Resume to continue...', mode: 'resume' }
+      },
+      {
+        id: 'long-running',
+        name: '12. Long-running job',
+        header: { active: true },
+        transcript: [
+          { role: 'user', content: 'Compress all video assets in the public folder.' },
+          { role: 'assistant', completed: false, turnStatus: 'in_progress', parts: [
+            { type: 'command', status: 'in_progress', command: 'ffmpeg -i input.mp4 -vcodec libx265 -crf 28 output.mp4', timeElapsed: '10m 40s', logs: 'frame=4520 fps=15 q=29.0 size= 12800kB time=00:03:00.80 bitrate= 579.8kbits/s speed=0.6x' }
+          ]}
+        ],
+        ticker: 'Process running in background',
+        composer: { text: '', placeholder: 'Takomi is running...', mode: 'stop' }
+      },
+      {
+        id: 'media',
+        name: '13. Message with attachments',
+        header: { active: false },
+        transcript: [
+          { role: 'user', content: 'Update the hero banner to use this new background image.', attachments: [
+            { type: 'image', url: 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=300&h=200&fit=crop' },
+            { type: 'file', icon: 'file-text', name: 'CopyDraft.docx', size: '14 KB' }
+          ] },
+          { role: 'assistant', completed: true, turnStatus: 'completed', parts: [
+            { type: 'text', content: 'Done.' }
+          ]}
+        ],
+        ticker: null,
+        composer: { text: '', placeholder: 'Type your message...', mode: 'send' }
+      },
+      {
+        id: 'dense-tech',
+        name: '14. Dense technical answer',
+        header: { active: false },
+        transcript: [
+          { role: 'user', content: 'Explain how the React rendering lifecycle matches our new context hooks. Specifically for StoreContext.tsx and auth/AuthProvider.tsx.' },
+          { role: 'assistant', completed: true, turnStatus: 'completed', parts: [
+            { type: 'text', content: 'When implementing context hooks, re-rendering behavior differs fundamentally based on how the value is memoized.\n\nIn `StoreContext.tsx`, the provider looks like this:\n```tsx\nexport const StoreProvider = ({ children }) => {\n  const [state, dispatch] = useReducer(reducer, initialState);\n  return (\n    <StoreContext.Provider value={{ state, dispatch }}>\n      {children}\n    </StoreContext.Provider>\n  );\n}\n```\nBecause the `value` object literal is recreated on every render of the provider, any component consuming `useStore()` will re-render even if they only extract the stable `dispatch` function.\n\nIn contrast, `auth/AuthProvider.tsx` correctly uses `useMemo`:\n```tsx\nexport const AuthProvider = ({ children }) => {\n  const [user, setUser] = useState(null);\n  const value = useMemo(() => ({ user, setUser }), [user]);\n  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;\n}\n```\n\nHere are the critical paths affected:\n<ul><li>src/features/dashboard/components/MetricsPanel.tsx</li><li>src/features/auth/components/ProfileWidget.tsx</li><li>src/shared/components/layout/Header.tsx</li></ul>' }
+          ]}
+        ],
+        ticker: null,
+        composer: { text: '', placeholder: 'Type your message...', mode: 'send' }
+      }
+    ];
+
+    function renderState(stateId) {
+      const state = states.find(s => s.id === stateId);
+      if (!state) return;
+
+      // Sidebar Selection
+      document.querySelectorAll('[data-state-btn]').forEach(btn => {
+        btn.classList.toggle('active', btn.dataset.stateBtn === stateId);
+      });
+
+      // Header Status
+      const runBadge = document.getElementById('header-run-badge');
+      if (state.header.active && !state.header.paused) {
+        runBadge.classList.remove('hidden');
+        runBadge.innerHTML = `<span class="w-2 h-2 rounded-full bg-takomiAccent animate-pulse inline-block mr-1"></span> RUN ACTIVE`;
+      } else if (state.header.paused) {
+        runBadge.classList.remove('hidden');
+        runBadge.className = 'flex items-center gap-1 bg-amber-500/10 text-amber-500 px-2 py-1 rounded text-xs font-bold uppercase tracking-wider';
+        runBadge.innerHTML = `<span class="w-2 h-2 rounded-full bg-amber-500 inline-block mr-1"></span> PAUSED`;
+      } else {
+        runBadge.classList.add('hidden');
+      }
+
+      // Main Transcript
+      const container = document.getElementById('transcript-container');
+      container.innerHTML = '';
+
+      state.transcript.forEach(turn => {
+        if (turn.role === 'user') {
+          let attachmentsHtml = '';
+          if (turn.attachments) {
+            attachmentsHtml = `<div class="flex flex-wrap gap-2 w-full justify-end mb-2">`;
+            turn.attachments.forEach(att => {
+              if (att.type === 'image') {
+                attachmentsHtml += `<div class="h-24 w-auto rounded-xl overflow-hidden border border-black/10 dark:border-white/5 shrink-0 shadow-md cursor-pointer"><img src="${att.url}" class="h-full w-full object-cover"/></div>`;
+              } else {
+                attachmentsHtml += `<div class="flex items-center gap-2 bg-appItemBg border border-appBorder px-3 py-2 rounded-xl text-[13px] shadow-sm cursor-pointer"><i data-lucide="${att.icon}" class="w-4 h-4 text-appMuted"></i><span class="text-appText font-medium">${att.name}</span><span class="text-appMuted text-[11px]">${att.size}</span></div>`;
+              }
+            });
+            attachmentsHtml += `</div>`;
+          }
+
+          container.innerHTML += `
+            <div class="w-full flex flex-col items-end">
+              ${attachmentsHtml}
+              <div class="bg-appItemBg border border-appBorder text-appText px-5 py-4 rounded-3xl rounded-tr-sm max-w-[85%] leading-relaxed shadow-sm whitespace-pre-wrap font-medium">
+                ${turn.content}
+              </div>
+            </div>
+          `;
+        } else if (turn.role === 'assistant') {
+          const wrapper = document.createElement('div');
+          wrapper.className = 'w-full flex flex-col items-start gap-4 -mt-2';
+          
+          // Avatar
+          wrapper.innerHTML += `
+            <div class="flex items-center gap-2 mb-1">
+              <div class="w-4 h-4 rounded-md bg-takomiAccent flex items-center justify-center shadow-sm shadow-takomiAccent/20">
+                 <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#0C0C0D" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M14 10l-2 1m0 0l-2-1m2 1v2.5M20 7l-2 1m2-1l-2-1m2 1v2.5M14 4l-2-1-2 1M4 7l2-1M4 7l2 1M4 7v2.5" /></svg>
+              </div>
+              <span class="text-[11px] font-bold uppercase tracking-[0.2em] text-appMuted">Takomi</span>
+            </div>
+          `;
+          
+          turn.parts.forEach(part => {
+             if (part.type === 'text') {
+               const p = document.createElement('div');
+               p.className = 'markdown-content w-full text-appText';
+               let html = part.content
+                  .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+                  .replace(/```tsx\n([\s\S]*?)\n```/g, '<pre><code>$1</code></pre>')
+                  .replace(/`([^`\n]+)`/g, '<code>$1</code>')
+                  .replace(/\n\n/g, '</p><p>');
+               if(!part.content.includes('<ul>')) html = `<p>${html}</p>`;
+               p.innerHTML = `${html}${part.streaming ? '<span class="loading-dots font-bold"></span>' : ''}`;
+               wrapper.appendChild(p);
+             } else if (part.type === 'thought') {
+               const p = document.createElement('div');
+               p.className = 'bg-appItemBg border border-appBorder rounded-xl p-4 text-appMuted text-[13px] max-w-2xl shadow-sm relative overflow-hidden group hover:border-[#8B5CF6]/30 transition-colors';
+               p.innerHTML = `
+                 <div class="absolute top-0 left-0 w-1 h-full bg-[#8B5CF6]/50"></div>
+                 <div class="flex items-center gap-2 mb-2 font-bold text-appText text-[11px] uppercase tracking-wider"><i data-lucide="brain-cog" class="w-3.5 h-3.5 text-[#8B5CF6]"></i> ${part.status === 'in_progress' ? 'Thinking<span class="loading-dots"></span>' : 'Thought Process'}</div>
+                 <div class="leading-relaxed opacity-80">${part.text}</div>
+               `;
+               wrapper.appendChild(p);
+             } else if (part.type === 'command') {
+               const p = document.createElement('div');
+               const borderClass = part.status === 'failed' ? 'border-red-500/30' : 'border-appBorder';
+               const iconColor = part.status === 'failed' ? 'text-red-400' : 'text-appText';
+               const iconNode = part.status === 'failed' ? '<i data-lucide="x-circle" class="w-4 h-4"></i>' : (part.status === 'in_progress' ? '<i data-lucide="loader-2" class="w-4 h-4 animate-spin text-takomiAccent"></i>' : '<i data-lucide="terminal" class="w-4 h-4"></i>');
+               let timeHtml = part.timeElapsed ? `<span class="ml-auto bg-black/5 dark:bg-white/5 px-2 py-0.5 rounded text-[10px] font-mono text-appMuted">${part.timeElapsed}</span>` : '';
+               
+               p.className = `w-full max-w-3xl bg-[var(--app-terminal-bg)] border ${borderClass} rounded-2xl overflow-hidden shadow-sm`;
+               p.innerHTML = `
+                 <div class="px-4 py-3 flex flex-col">
+                    <div class="flex items-center gap-3">
+                      <div class="p-1.5 bg-black/5 dark:bg-white/5 rounded-md ${iconColor}">
+                         ${iconNode}
+                      </div>
+                      <div class="font-mono text-[13px] text-appText font-medium">${part.command}</div>
+                      ${timeHtml}
+                    </div>
+                    ${part.logs ? `<div class="font-mono text-[11px] leading-relaxed text-appMuted whitespace-pre-wrap mt-3 bg-black/5 dark:bg-black/30 p-2.5 rounded-lg border border-black/5 dark:border-white/5">${part.logs}</div>` : ''}
+                 </div>
+               `;
+               wrapper.appendChild(p);
+             } else if (part.type === 'file_diff_card') {
+               const p = document.createElement('div');
+               const borderClass = part.status === 'in_progress' ? 'border-takomiAccent/50 shadow-[0_0_15px_rgba(250,204,21,0.1)]' : 'border-appBorder';
+               p.className = `w-full max-w-2xl bg-appItemBg border ${borderClass} rounded-2xl p-4 shadow-sm flex flex-col gap-3`;
+               
+               let filesHtml = part.files.map(f => `
+                  <div class="flex items-center justify-between py-1 border-b border-appBorder last:border-0">
+                    <div class="flex items-center gap-2 truncate">
+                      <i data-lucide="file-code" class="w-4 h-4 text-appMuted shrink-0"></i>
+                      <span class="text-appText font-mono text-[12px] truncate">${f.path}</span>
+                    </div>
+                    <span class="text-appMuted text-[11px] font-medium shrink-0 ml-4">${f.label}</span>
+                  </div>
+               `).join('');
+               
+               p.innerHTML = `
+                 <div class="flex items-center justify-between">
+                   <div class="flex items-center gap-2 text-[11px] font-bold uppercase tracking-wider text-appText">
+                      <i data-lucide="git-commit" class="w-4 h-4 text-appMuted"></i> ${part.count} Files Modified
+                   </div>
+                   ${part.status === 'in_progress' ? '<div class="w-2 h-2 rounded-full bg-takomiAccent animate-pulse"></div>' : ''}
+                 </div>
+                 <div class="flex flex-col bg-appPanel border border-appBorder rounded-xl px-3 py-1">
+                   ${filesHtml}
+                 </div>
+               `;
+               wrapper.appendChild(p);
+             } else if (part.type === 'pause_request') {
+               const p = document.createElement('div');
+               p.className = 'w-full max-w-2xl bg-amber-500/10 border border-amber-500/20 text-amber-500 px-4 py-3 rounded-xl flex items-center gap-3 text-[13px] font-medium';
+               p.innerHTML = `<i data-lucide="alert-triangle" class="w-5 h-5 shrink-0"></i> ${part.text}`;
+               wrapper.appendChild(p);
+             }
+          });
+
+          if (turn.turnStatus === 'failed') {
+            wrapper.innerHTML += `<div class="flex items-center gap-2 text-red-500 bg-red-500/10 border border-red-500/20 px-3 py-1.5 rounded-lg text-[12px] mt-2 font-medium"><i data-lucide="alert-circle" class="w-4 h-4"></i> Run failed.</div>`;
+          } else if (turn.turnStatus === 'cancelled') {
+            wrapper.innerHTML += `<div class="flex items-center gap-2 text-appMuted bg-appPanel border border-appBorder px-3 py-1.5 rounded-lg text-[12px] mt-2"><i data-lucide="x-circle" class="w-4 h-4"></i> Run cancelled.</div>`;
+          } else if (turn.turnStatus === 'completed') {
+            // Optional: visual distinction that it's completely done.
+          }
+          container.appendChild(wrapper);
+        }
+      });
+
+      // Bottom Ticker
+      const tickerContainer = document.getElementById('bottom-ticker-container');
+      if (state.ticker) {
+        tickerContainer.innerHTML = `<i data-lucide="activity" class="w-3.5 h-3.5 mr-1"></i> ${state.ticker}`;
+        tickerContainer.classList.remove('opacity-0', 'translate-y-2', 'hidden');
+      } else {
+        tickerContainer.classList.add('opacity-0', 'translate-y-2');
+        setTimeout(() => { if (!state.ticker) tickerContainer.classList.add('hidden'); }, 300);
+      }
+
+      // Composer
+      const input = document.getElementById('composer-input');
+      input.value = state.composer.text;
+      input.placeholder = state.composer.placeholder;
+      input.disabled = state.composer.mode === 'stop';
+      
+      const attachRender = document.getElementById('composer-attachments');
+      attachRender.innerHTML = '';
+      if (state.attachments) {
+        let html = '';
+        state.attachments.forEach(att => {
+          html += `<div class="flex items-center gap-1.5 bg-black/5 dark:bg-white/10 border border-black/10 dark:border-white/5 py-1 px-2 rounded-lg text-[12px] shrink-0 text-appText"><i data-lucide="${att.icon}" class="w-3.5 h-3.5 text-appMuted"></i><span>${att.name}</span><button class="ml-1 text-appMuted hover:text-red-500"><i data-lucide="x" class="w-3 h-3"></i></button></div>`;
+        });
+        attachRender.innerHTML = html;
+        attachRender.classList.remove('hidden');
+      } else {
+        attachRender.classList.add('hidden');
+      }
+
+      const actions = document.getElementById('composer-actions');
+      if (state.composer.mode === 'send') {
+        const hasText = state.composer.text.length > 0 || (state.attachments && state.attachments.length > 0);
+        if (hasText) {
+          actions.innerHTML = `
+            <button class="h-10 w-10 rounded-2xl transition-all duration-300 bg-appText text-appBg flex items-center justify-center hover:scale-105 shadow-[0_8px_20px_rgba(0,0,0,0.15)] dark:shadow-[0_8px_20px_rgba(255,255,255,0.15)]">
+              <i data-lucide="arrow-up" class="h-5 w-5"></i>
+            </button>
+          `;
+        } else {
+          actions.innerHTML = `
+            <button class="h-10 w-10 flex text-appMuted items-center justify-center rounded-2xl transition-all hover:bg-black/5 dark:hover:bg-white/10 hover:text-appText">
+              <i data-lucide="mic" class="h-5 w-5"></i>
+            </button>
+          `;
+        }
+      } else if (state.composer.mode === 'stop') {
+        actions.innerHTML = `
+          <button class="h-10 w-10 rounded-2xl bg-black/5 dark:bg-white/10 hover:bg-red-500/10 hover:text-red-500 transition-all flex items-center justify-center">
+             <i data-lucide="square" class="h-4 w-4 fill-current"></i>
+          </button>
+        `;
+      } else if (state.composer.mode === 'resume') {
+        actions.innerHTML = `
+          <button class="px-5 h-10 flex items-center gap-2 justify-center rounded-2xl bg-amber-500 hover:bg-amber-400 text-white shadow shadow-amber-500/20 font-bold text-xs uppercase tracking-wider transition-all">
+            <i data-lucide="play" class="w-4 h-4 fill-current"></i> Resume Run
+          </button>
+        `;
+      }
+
+      lucide.createIcons();
+      document.getElementById('transcript-scroll').scrollTop = document.getElementById('transcript-scroll').scrollHeight;
+    }
+
+    const stateList = document.getElementById('state-list');
+    states.forEach(s => {
+      const btn = document.createElement('button');
+      btn.dataset.stateBtn = s.id;
+      btn.className = 'w-full text-left px-3 py-2 rounded-lg hover:bg-appHover transition-colors flex items-center justify-between group text-appMuted font-medium hover:text-appText';
+      btn.innerHTML = `
+        <span class="truncate pr-2">${s.name}</span>
+        <i data-lucide="chevron-right" class="w-3 h-3 opacity-0 group-hover:opacity-100 transition-opacity"></i>
+      `;
+      btn.onclick = () => renderState(s.id);
+      stateList.appendChild(btn);
+    });
+
+    renderState('idle');
+  </script>
+</body>
+</html>

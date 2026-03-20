@@ -1,0 +1,546 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="UTF-8">
+  <title>Takomi Chat UI States V3 (WinUI Ground Truth Ref)</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            appBg: '#09090B', // Near black for main canvas
+            appPanel: '#0F0F11', // Slightly lighter for panels
+            appBorder: '#27272A',
+            appHover: '#18181B',
+            appText: '#EDEDED',
+            appMuted: '#A1A1AA',
+            takomiYellow: '#EAB308', /* Tailwind yellow-500 */
+            takomiYellowHover: '#CA8A04', 
+          },
+          fontFamily: {
+            sans: ['Inter', 'sans-serif'],
+            mono: ['JetBrains Mono', 'monospace'],
+          }
+        }
+      }
+    }
+  </script>
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    body { font-family: 'Inter', sans-serif; background-color: theme('colors.appBg'); color: theme('colors.appText'); overflow: hidden;}
+    .mono { font-family: 'JetBrains Mono', monospace; }
+    
+    .scrollbar-hide::-webkit-scrollbar { display: none; }
+    .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
+    
+    .custom-scrollbar::-webkit-scrollbar { width: 6px; }
+    .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
+    .custom-scrollbar::-webkit-scrollbar-thumb { background-color: theme('colors.appBorder'); border-radius: 3px; }
+    .custom-scrollbar::-webkit-scrollbar-thumb:hover { background-color: theme('colors.appMuted'); }
+    
+    .loading-dots:after {
+      content: '.';
+      animation: dots 1.5s steps(5, end) infinite;
+    }
+    @keyframes dots {
+      0%, 20% { color: transparent; text-shadow: .25em 0 0 transparent, .5em 0 0 transparent;}
+      40% { color: inherit; text-shadow: .25em 0 0 transparent, .5em 0 0 transparent;}
+      60% { text-shadow: .25em 0 0 inherit, .5em 0 0 transparent;}
+      80%, 100% { text-shadow: .25em 0 0 inherit, .5em 0 0 inherit;}
+    }
+
+    [data-state-btn].active {
+      background-color: theme('colors.appHover');
+      border-left: 3px solid theme('colors.takomiYellow');
+    }
+    [data-state-btn] {
+      border-left: 3px solid transparent;
+    }
+  </style>
+</head>
+<body class="flex flex-col h-screen overflow-hidden text-sm selection:bg-takomiYellow/30">
+
+  <!-- Fake OS/Window Tabs Titlebar representing the very top of the screenshot -->
+  <div class="h-10 w-full bg-black border-b border-appBorder flex items-center px-4 shrink-0 overflow-x-auto custom-scrollbar gap-2 z-50">
+    <div class="flex items-center gap-2 bg-yellow-400 text-black px-4 py-1.5 rounded-sm font-semibold text-xs cursor-pointer hover:bg-yellow-500 transition-colors">
+      <i data-lucide="folder-plus" class="w-3.5 h-3.5"></i> Add Folder
+    </div>
+    <div class="w-4"></div>
+    <!-- Tabs -->
+    <div class="flex items-center gap-1">
+      <div class="px-4 py-1.5 text-xs text-appMuted hover:text-white cursor-pointer border-b-2 border-transparent flex items-center gap-2">
+        <div class="w-2 h-2 rounded-full bg-takomiYellow"></div> 2026_03_10_Takomi_Code...
+      </div>
+      <div class="px-4 py-1.5 text-xs text-white bg-appHover cursor-pointer border-b-2 border-takomiYellow flex items-center gap-2">
+        <i data-lucide="layout-grid" class="w-3 h-3 text-takomiYellow"></i> State Mockups (v3)
+      </div>
+      <div class="px-4 py-1.5 text-xs text-appMuted hover:text-white cursor-pointer border-b-2 border-transparent flex items-center gap-2">
+        <div class="w-2 h-2 rounded-full bg-takomiYellow"></div> 2026-03-05_Founder_A...
+      </div>
+    </div>
+  </div>
+
+  <!-- Main 3-pane Layout -->
+  <div class="flex-1 flex overflow-hidden">
+
+    <!-- Left Pane: Sessions sidebar -->
+    <div class="w-72 bg-[#0E0E10] border-r border-appBorder flex flex-col z-40 shrink-0">
+      
+      <div class="px-6 py-6 pb-2">
+        <h1 class="text-xl font-bold text-white tracking-wide">Sessions</h1>
+        <p class="text-[11px] text-appMuted mt-1">2026-03-10 Takomi Code</p>
+      </div>
+
+      <div class="px-4 mb-4">
+        <div class="relative">
+          <i data-lucide="search" class="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-appMuted"></i>
+          <input type="text" placeholder="Search sessions..." class="w-full bg-[#18181A] border border-appBorder rounded-lg pl-9 pr-3 py-1.5 text-[12px] text-white focus:outline-none focus:border-takomiYellow/50 transition-colors placeholder:text-appMuted/50">
+        </div>
+      </div>
+
+      <!-- State switcher (mapped to sessions) -->
+      <div id="state-list" class="flex-1 overflow-y-auto px-2 flex flex-col gap-1 pb-4 custom-scrollbar">
+        <!-- JS Populated -->
+      </div>
+
+      <!-- Bottom button -->
+      <div class="p-4 border-t border-appBorder">
+        <button class="w-full bg-takomiYellow hover:bg-takomiYellowHover text-black font-semibold py-2 rounded flex items-center justify-center gap-2 transition-colors">
+          <i data-lucide="plus" class="w-4 h-4"></i> New Session
+        </button>
+      </div>
+      <div class="px-4 pb-2 text-[10px] text-appMuted">
+        Workspace '2026-03-10_Takomi_Code' opened.
+      </div>
+      
+    </div>
+
+    <!-- Center Pane: Chat Canvas -->
+    <div class="flex-1 flex flex-col relative bg-appBg overflow-hidden items-center">
+      
+      <!-- Inside Chat Header -->
+      <header class="w-full h-12 flex items-center px-6 border-b border-appBorder/50 shrink-0 relative bg-appBg/90 z-10 backdrop-blur">
+        <div class="flex items-center gap-4 text-[12px]">
+          <button class="text-appMuted hover:text-white p-1 rounded-sm transition-colors"><i data-lucide="layout-grid" class="w-4 h-4"></i></button>
+          
+          <div class="flex items-center gap-2 px-3 py-1 bg-appPanel rounded-md border border-appBorder/50">
+             <span class="text-appMuted">Context</span>
+             <span class="text-white font-medium">2026-03-10_Takomi_Code / <span class="text-appMuted">actual-build</span></span>
+          </div>
+
+          <div class="flex items-center gap-2 px-3 py-1 bg-appPanel rounded-md border border-appBorder/50">
+            <div class="w-2 h-2 rounded-full bg-green-500"></div>
+            <span class="text-appMuted">Local Desktop</span>
+          </div>
+        </div>
+        
+        <div class="ml-auto flex items-center gap-4 text-[11px] text-appMuted" id="header-status-area">
+          <span id="center-header-status-text">1 run active in this workspace</span>
+          <i data-lucide="user" class="w-4 h-4"></i>
+        </div>
+      </header>
+
+      <!-- Chat Scroll Container -->
+      <main class="flex-1 overflow-y-auto w-full custom-scrollbar relative px-4" id="transcript-scroll">
+        <div class="max-w-4xl mx-auto py-8 flex flex-col gap-6 pb-48" id="transcript-container">
+          <!-- JS Rendered -->
+        </div>
+      </main>
+
+      <!-- Composer container centered -->
+      <div class="w-full absolute flex flex-col items-center bottom-0 left-0 right-0 pointer-events-none">
+        <div class="w-full h-32 bg-gradient-to-t from-appBg via-appBg to-transparent absolute bottom-0 left-0 right-0 -z-10 opacity-100"></div>
+        
+        <div class="w-full max-w-4xl px-4 flex flex-col gap-2 pointer-events-auto relative mt-auto z-10">
+          
+          <!-- Bottom Ticker -->
+          <div id="bottom-ticker-container" class="h-6 flex items-center transition-all duration-300 transform translate-y-2 opacity-0 text-[11px] mono text-appMuted hidden mb-1 bg-[#18181A] px-3 py-1 rounded w-max border border-appBorder">
+            <!-- JS rendered -->
+          </div>
+
+          <!-- Composer Box (Ground Truth Style) -->
+          <div class="bg-[#101012] border border-appBorder rounded-lg shadow-2xl focus-within:border-takomiYellow/50 transition-colors flex flex-col w-full mb-6">
+            
+            <div id="composer-attachments" class="px-4 pt-3 flex gap-2 flex-wrap items-center empty:hidden">
+              <!-- JS rendered -->
+            </div>
+            
+            <textarea id="composer-input" rows="1" class="w-full bg-transparent border-none text-white px-4 py-3 focus:outline-none resize-none max-h-48 custom-scrollbar placeholder:text-appMuted/40 leading-relaxed text-[13px]" placeholder="Ask Takomi to resolve something..."></textarea>
+            
+            <!-- Composer Bottom Toolbar -->
+            <div class="flex items-center justify-between px-3 py-2 border-t border-appBorder/20">
+               <div class="flex items-center gap-2">
+                  <button class="text-takomiYellow p-1.5 hover:bg-[#18181B] rounded transition-colors"><i data-lucide="folder" class="w-4 h-4 fill-current opacity-20"></i></button>
+                  <button class="text-appMuted p-1.5 hover:bg-[#18181B] rounded hover:text-white transition-colors"><i data-lucide="file" class="w-4 h-4"></i></button>
+                  <div class="flex items-center gap-2 px-2 py-1 rounded bg-[#18181B] text-takomiYellow text-[11px] font-medium border border-appBorder">
+                    Local
+                  </div>
+                  <div class="flex items-center gap-2 px-2 py-1 rounded bg-[#18181B] text-appMuted text-[11px] border border-appBorder">
+                    Same workspace / default work..
+                  </div>
+               </div>
+               
+               <div class="flex items-center" id="composer-actions">
+                 <!-- JS dynamic -->
+               </div>
+            </div>
+          </div>
+          
+        </div>
+      </div>
+      
+    </div>
+
+    <!-- Right Pane: Session Details -->
+    <div class="w-72 bg-[#0E0E10] border-l border-appBorder flex flex-col z-40 shrink-0 overflow-y-auto custom-scrollbar">
+      <div class="px-6 py-6 border-b border-appBorder/50">
+        <h2 class="text-lg font-bold text-white">Session Details</h2>
+      </div>
+
+      <div class="p-6 flex flex-col gap-8 text-[12px]">
+        
+        <!-- Current Run Section -->
+        <div class="flex flex-col gap-3">
+          <h3 class="text-[10px] uppercase font-bold text-appMuted tracking-wider">CURRENT RUN</h3>
+          <div>
+            <div class="text-[18px] font-bold text-white mb-2" id="right-panel-run-id">Run f7432145</div>
+            <div id="right-panel-run-status">
+               <span class="bg-takomiYellow/20 text-takomiYellow border border-takomiYellow/30 px-2 py-0.5 rounded text-[11px] font-medium inline-block mb-3">Running</span>
+               <div class="text-appMuted text-[11px]">Waiting for Takomi output...</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="h-px w-full bg-appBorder/50"></div>
+
+        <!-- Workspace Section -->
+        <div class="flex flex-col gap-2">
+          <h3 class="text-[10px] uppercase font-bold text-appMuted tracking-wider">WORKSPACE</h3>
+          <div class="bg-[#18181A] px-3 py-2 rounded text-appMuted text-[10px] font-mono break-all border border-appBorder/50">
+            C:\CreativeOS\01_Projects\Code\
+            Personal_Stuff\2026-03-10_Takomi_Code
+          </div>
+        </div>
+
+        <div class="h-px w-full bg-appBorder/50"></div>
+
+        <!-- Active Runs Section -->
+        <div class="flex flex-col gap-3">
+           <h3 class="text-[10px] uppercase font-bold text-appMuted tracking-wider">ACTIVE RUNS</h3>
+           <div class="flex flex-col gap-3" id="right-panel-active-list">
+              <!-- Mocks -->
+              <div class="flex flex-col bg-[#18181A] p-2 rounded border border-appBorder/50">
+                 <span class="text-white font-mono text-[10px]">f7432145-cd83-1r1c...</span>
+                 <span class="text-takomiYellow text-[10px] mt-1 font-medium">InProgress</span>
+              </div>
+           </div>
+        </div>
+
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Footer very bottom bar -->
+  <div class="w-full h-6 bg-black border-t border-appBorder flex justify-between items-center px-4 shrink-0 text-[10px] text-appMuted z-50">
+     <div id="status-footer-text">I'm using the `takomi` skill for a short debug...</div>
+     <div class="font-mono">Takomi v5</div>
+  </div>
+
+
+  <!-- JS Engine -->
+  <script>
+    // Data matches v2 content, but styling will be rewritten in renderState
+    const states = [
+      {
+        id: 'idle',
+        name: 'Project Chat 1',
+        desc: 'Idle, empty draft',
+        header: { active: false },
+        transcript: [],
+        ticker: null,
+        composer: { text: '', placeholder: 'Ask Takomi to resolve something...', mode: 'send' }
+      },
+      {
+        id: 'draft',
+        name: 'Project Chat 2',
+        desc: 'Draft ready to send',
+        header: { active: false },
+        transcript: [],
+        ticker: null,
+        attachments: [ { name: 'codex_sdk_state_map.md', size: '2 KB', icon: 'file-text' } ],
+        composer: { text: 'ok then lock the state map then update the composer button to reflect real state...', placeholder: 'Ask Takomi to resolve something...', mode: 'send' }
+      },
+      {
+        id: 'starting',
+        name: 'Codex Session 019efb32',
+        desc: 'Starting run',
+        header: { active: true },
+        transcript: [
+          { role: 'user', content: 'Scan the project files and map the current architecture.' }
+        ],
+        ticker: 'Starting run...',
+        composer: { text: '', placeholder: 'Takomi is running...', mode: 'stop' }
+      },
+      {
+        id: 'thinking',
+        name: 'Codex Session 019cf45e',
+        desc: 'Running with thinking',
+        header: { active: true },
+        transcript: [
+          { role: 'user', content: 'I realize that, for some reason, I don\'t know if I want there to be parity. Let\'s discuss. Should we make it close? For example, I\'ve seen people use the Codex application, right? It\'s basically just a wrapper for the Codex CLI...' },
+          { role: 'assistant', completed: false, parts: [
+            { type: 'thought', status: 'completed', text: 'Thinking through the request...\n\nI\'m checking the repo\'s session storage and retrieval flow first, then I\'ll compare it with how the local Codex tooling persists sessions on this machine.' },
+            { type: 'progress', status: 'in_progress', text: 'Checking project guidance...' }
+          ]}
+        ],
+        ticker: null,
+        composer: { text: '', placeholder: 'Takomi is running...', mode: 'stop' }
+      },
+      {
+        id: 'dense',
+        name: 'Codex Session 019cf41f',
+        desc: 'Dense technical (WinUI style)',
+        header: { active: false },
+        transcript: [
+          { role: 'user', content: 'I realize that, for some reason, I don\'t know if I want there to be parity. Let\'s discuss. Should we make it close? For example...' },
+          { role: 'assistant', completed: true, parts: [
+            { type: 'thought', status: 'completed', text: 'Thinking through the request...\n\nI\'m checking the repo\'s session storage and retrieval flow first, then I\'ll compare it with how the local Codex tooling persists sessions on this machine so we can see whether this is a parity gap or just a different storage path.' },
+            { type: 'progress', status: 'completed', text: 'Checking project guidance...' },
+            { type: 'progress', status: 'completed', text: 'Checking project guidance' },
+            { type: 'text', content: 'What\'s happening is a split-brain model, not a single shared session model.\n\nTakomi\'s UI sessions are stored in its own local JSON store at <code>[LocalChatSessionRepository.cs]</code>, and the workspace UI only loads sessions from that repository in <code>[MainViewModel.cs]</code>. Separately, the SDK bridge starts or resumes real Codex threads...' }
+          ]}
+        ],
+        ticker: null,
+        composer: { text: 'hello world', placeholder: 'Ask Takomi to resolve something...', mode: 'send' }
+      },
+      {
+        id: 'file_change',
+        name: 'Codex Session 019cf415',
+        desc: 'File diff card view',
+        header: { active: true },
+        transcript: [
+          { role: 'user', content: 'Update the main CSS file to use dark mode variables.' },
+          { role: 'assistant', completed: false, parts: [
+            { type: 'text', content: 'I worked through the issues we talked about in one pass.\n\nWhat changed:' },
+            { type: 'file_diff_card', count: 4, add: 159, del: 93, status: 'completed', files: [
+                { path: 'src/TakomiCode.UI/Views/SessionsWorkspaceView.xaml', add: 63, del: 62 },
+                { path: 'src/TakomiCode.UI/ViewModels/MainViewModel.cs', add: 33, del: 22 }
+            ]}
+          ]}
+        ],
+        ticker: 'Applying modifications...',
+        composer: { text: '', placeholder: 'Takomi is running...', mode: 'stop' }
+      },
+       {
+        id: 'paused',
+        name: 'Codex Session 019cf1eb',
+        desc: 'Paused/resumable',
+        header: { active: false, paused: true },
+        transcript: [
+          { role: 'user', content: 'Deploy the database migrations to production.' },
+          { role: 'assistant', completed: false, paused: true, parts: [
+            { type: 'progress', status: 'completed', text: 'npx prisma generate' },
+            { type: 'text', content: 'The client is ready. I need your confirmation before running the `migrate deploy` command.' },
+            { type: 'pause_request', text: 'Waiting for approval to run command: npx prisma migrate deploy' }
+          ]}
+        ],
+        ticker: 'Run paused waiting for approval',
+        composer: { text: '', placeholder: 'Run is paused. Resume to continue...', mode: 'resume' }
+      }
+    ];
+
+    function renderState(stateId) {
+      const state = states.find(s => s.id === stateId);
+      if (!state) return;
+
+      // Update Sidebar state list UI
+      document.querySelectorAll('[data-state-btn]').forEach(btn => {
+        btn.classList.toggle('active', btn.dataset.stateBtn === stateId);
+      });
+
+      // Update Center Header Text
+      const headerText = document.getElementById('center-header-status-text');
+      if (state.header.paused) {
+         headerText.textContent = '1 paused run in this workspace';
+         headerText.className = 'text-orange-400';
+      } else if (state.header.active) {
+         headerText.textContent = '1 run active in this workspace';
+         headerText.className = 'text-appMuted';
+      } else {
+         headerText.textContent = 'Workspace ready';
+         headerText.className = 'text-appMuted';
+      }
+
+      // Update Right Sidebar (Session Details)
+      const rightPanelRunId = document.getElementById('right-panel-run-id');
+      const rightPanelRunStatus = document.getElementById('right-panel-run-status');
+      
+      let randomId = Math.random().toString(16).slice(2, 10);
+      rightPanelRunId.textContent = `Run ${randomId}`;
+      
+      if (state.header.paused) {
+         rightPanelRunStatus.innerHTML = `<span class="bg-orange-900/40 text-orange-400 border border-orange-500/30 px-2 py-0.5 rounded text-[11px] font-medium inline-block mb-3">Paused</span><div class="text-appMuted text-[11px]">Waiting for your input.</div>`;
+      } else if (state.header.active) {
+         rightPanelRunStatus.innerHTML = `<span class="bg-takomiYellow/20 text-takomiYellow border border-takomiYellow/30 px-2 py-0.5 rounded text-[11px] font-medium inline-block mb-3">Running</span><div class="text-appMuted text-[11px]">Waiting for Takomi output...</div>`;
+      } else {
+         rightPanelRunStatus.innerHTML = `<span class="bg-green-900/20 text-green-500 border border-green-500/30 px-2 py-0.5 rounded text-[11px] font-medium inline-block mb-3">Completed</span><div class="text-appMuted text-[11px]">Run finished successfully.</div>`;      
+      }
+
+      // Render Transcript
+      const container = document.getElementById('transcript-container');
+      container.innerHTML = '';
+
+      state.transcript.forEach(turn => {
+        if (turn.role === 'user') {
+          // User Bubble - Wide right-aligned or full width? In screenshots, user bubble is right aligned but wide.
+          const div = document.createElement('div');
+          div.className = 'w-full flex justify-end pt-4'; 
+          
+          let attachmentsHtml = ''; // simple handler for attachments
+          if (turn.attachments) {
+            attachmentsHtml = `<div class="flex flex-wrap gap-2 w-full justify-end mb-2"></div>`; // skip for brevity in v3 unless needed
+          }
+
+          div.innerHTML = `
+            ${attachmentsHtml}
+            <div class="bg-[#18181A] text-gray-200 px-6 py-5 rounded-xl border border-white/5 max-w-[85%] leading-relaxed text-[13px] font-medium shadow-sm whitespace-pre-wrap">
+              ${turn.content}
+            </div>
+          `;
+          container.appendChild(div);
+        } else if (role = 'assistant' && turn.role === 'assistant') {
+          // Assistant Thread - With Takomi avatar
+          const wrapper = document.createElement('div');
+          wrapper.className = 'w-full flex gap-4 mt-6';
+          
+          const avatar = document.createElement('div');
+          avatar.className = 'w-7 h-7 bg-takomiYellow rounded-md flex justify-center items-center text-black font-bold text-[12px] shrink-0 object-cover';
+          avatar.innerHTML = `T`;
+
+          const contentCol = document.createElement('div');
+          contentCol.className = 'flex-1 flex flex-col gap-3 min-w-0';
+
+          const titleRow = document.createElement('div');
+          titleRow.className = 'flex items-center gap-2 mb-1';
+          titleRow.innerHTML = `<div class="w-1.5 h-1.5 rounded-full bg-takomiYellow"></div><span class="text-[12px] font-bold text-appText tracking-wide">Takomi</span>`;
+          contentCol.appendChild(titleRow);
+
+          turn.parts.forEach(part => {
+             if (part.type === 'thought' || part.type === 'progress') {
+                const label = part.type.toUpperCase();
+                const p = document.createElement('div');
+                p.className = 'bg-transparent border border-appBorder rounded-lg px-4 py-3 text-appMuted text-[13px] flex flex-col gap-1 w-full max-w-3xl';
+                p.innerHTML = `<span class="text-[10px] text-appMuted/60 font-semibold tracking-wider">${label}</span><div class="whitespace-pre-wrap text-[13px]">${part.text}</div>`;
+                contentCol.appendChild(p);
+             } else if (part.type === 'text') {
+               const p = document.createElement('div');
+               p.className = 'text-[13px] leading-relaxed text-appText max-w-3xl whitespace-pre-wrap';
+               
+               let html = part.content.replace(/`([^`]+)`/g, '<code class="bg-takomiYellow/10 text-takomiYellow px-1.5 py-0.5 rounded text-[12px]">$1</code>');
+               p.innerHTML = html;
+               contentCol.appendChild(p);
+             } else if (part.type === 'file_diff_card') {
+               const p = document.createElement('div');
+               p.className = 'w-full max-w-3xl bg-[#18181A] border border-appBorder rounded-lg overflow-hidden mt-1 mb-1';
+               
+               let filesHtml = part.files.map(f => `
+                  <div class="flex items-center justify-between py-2 border-t border-white/5 opacity-80">
+                    <span class="text-takomiYellow truncate font-mono text-[11px]"><a href="#" class="hover:underline">${f.path}</a></span>
+                    <span class="text-green-500 shrink-0 font-mono text-[11px] ml-4">+${f.add}</span>
+                  </div>
+               `).join('');
+
+               p.innerHTML = `
+                 <div class="px-4 py-3">
+                   <div class="flex items-center justify-between mb-2 text-[12px]">
+                     <span class="font-semibold text-appText">${part.count} files changed</span>
+                   </div>
+                   <div class="flex flex-col mt-2 pr-2">
+                     ${filesHtml}
+                   </div>
+                 </div>
+               `;
+               contentCol.appendChild(p);
+             } else if (part.type === 'pause_request') {
+               const p = document.createElement('div');
+               p.className = 'bg-orange-500/10 border border-orange-500/20 text-orange-200 px-4 py-3 rounded-lg flex items-start gap-3 mt-1 max-w-3xl';
+               p.innerHTML = `<i data-lucide="pause-circle" class="w-5 h-5 shrink-0 mt-0.5 text-orange-400"></i><div class="flex-1 text-[13px] leading-relaxed font-medium">${part.text}</div>`;
+               contentCol.appendChild(p);
+             }
+          });
+
+          wrapper.appendChild(avatar);
+          wrapper.appendChild(contentCol);
+          container.appendChild(wrapper);
+        }
+      });
+
+      // Render Bottom Ticker
+      const tickerContainer = document.getElementById('bottom-ticker-container');
+      if (state.ticker) {
+        tickerContainer.innerHTML = `<i data-lucide="loader" class="w-3.5 h-3.5 mr-2 animate-spin"></i> ${state.ticker}`;
+        tickerContainer.classList.remove('opacity-0', 'translate-y-2', 'hidden');
+      } else {
+        tickerContainer.classList.add('opacity-0', 'translate-y-2');
+        setTimeout(() => { if (!state.ticker) tickerContainer.classList.add('hidden'); }, 300);
+      }
+
+      // Render Composer
+      const input = document.getElementById('composer-input');
+      input.value = state.composer.text;
+      input.placeholder = state.composer.placeholder;
+      input.disabled = state.composer.mode === 'stop';
+
+      const actions = document.getElementById('composer-actions');
+      if (state.composer.mode === 'send') {
+        actions.innerHTML = `
+          <button class="w-8 h-8 flex items-center justify-center rounded bg-takomiYellow hover:bg-takomiYellowHover text-black transition-colors">
+            <i data-lucide="send" class="w-4 h-4 ml-0.5"></i>
+          </button>
+        `;
+      } else if (state.composer.mode === 'stop') {
+        actions.innerHTML = `
+          <button class="px-3 h-8 flex items-center gap-1.5 justify-center rounded bg-red-500/10 text-red-500 border border-red-500/20 hover:bg-red-500/20 transition-colors font-semibold text-xs text-white">
+             <i data-lucide="square" class="w-3 h-3 fill-current"></i> Stop
+          </button>
+        `;
+      } else if (state.composer.mode === 'resume') {
+        actions.innerHTML = `
+          <button class="px-4 h-8 flex items-center gap-1.5 justify-center rounded bg-orange-500 text-white hover:bg-orange-600 transition-colors font-semibold text-xs">
+            <i data-lucide="play" class="w-3.5 h-3.5 fill-current"></i> Resume
+          </button>
+        `;
+      }
+
+      lucide.createIcons();
+      document.getElementById('transcript-scroll').scrollTop = document.getElementById('transcript-scroll').scrollHeight;
+    }
+
+    // Initialize sidebar list
+    const stateList = document.getElementById('state-list');
+    states.forEach(s => {
+      const btn = document.createElement('div');
+      btn.dataset.stateBtn = s.id;
+      btn.className = 'w-full text-left px-3 py-2.5 rounded-md hover:bg-appHover transition-colors flex flex-col gap-0.5 cursor-pointer group mb-1';
+      btn.innerHTML = `
+        <div class="flex items-center justify-between text-[12px]">
+           <div class="flex items-center gap-2 text-white font-medium">
+             <i data-lucide="folder" class="w-3.5 h-3.5 text-takomiYellow fill-current opacity-80"></i> 
+             ${s.name}
+           </div>
+        </div>
+        <div class="text-[10px] text-appMuted pl-5 truncate">${s.desc}</div>
+      `;
+      btn.onclick = () => renderState(s.id);
+      stateList.appendChild(btn);
+    });
+
+    // Initial render
+    renderState('idle');
+  </script>
+</body>
+</html>
