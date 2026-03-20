@@ -19,6 +19,8 @@ import {
 } from './constants.js';
 import type { IpcChannel } from './constants.js';
 import { TAKOMI_SESSION_BUNDLE_SCHEMA_VERSION } from './session-bundle.js';
+import { BILLING_PLAN_IDS, CHECKOUT_STATUSES, ENTITLEMENT_STATUSES } from './billing.js';
+import { SETTINGS_TABS } from './settings.js';
 
 const unknownRecordSchema = z.record(z.unknown());
 const ipcChannelValues = Object.values(IPC_CHANNELS) as [IpcChannel, ...IpcChannel[]];
@@ -35,9 +37,13 @@ export const InterventionActionSchema = z.enum(INTERVENTION_ACTIONS);
 export const InterventionOutcomeStatusSchema = z.enum(INTERVENTION_OUTCOMES);
 export const NormalizedRuntimeEventKindSchema = z.enum(NORMALIZED_RUNTIME_EVENT_KINDS);
 export const AuditEventKindSchema = z.enum(AUDIT_EVENT_KINDS);
+export const BillingPlanIdSchema = z.enum(BILLING_PLAN_IDS);
+export const EntitlementStatusSchema = z.enum(ENTITLEMENT_STATUSES);
+export const CheckoutStatusSchema = z.enum(CHECKOUT_STATUSES);
 export const TakomiAgentModeSlugSchema = z.enum(TAKOMI_AGENT_MODE_SLUGS);
 export const TakomiAgentCapabilitySchema = z.enum(TAKOMI_AGENT_CAPABILITIES);
 export const IpcChannelSchema = z.enum(ipcChannelValues);
+export const SettingsTabSchema = z.enum(SETTINGS_TABS);
 
 export const ShellCapabilitiesSchema = z
   .object({
@@ -627,6 +633,146 @@ export const TakomiAgentDefaultsBundleSchema = z
     modes: z.array(TakomiAgentModeDefinitionSchema),
     settings: TakomiAgentDefaultSettingsSchema,
     sources: z.array(TakomiAgentDefaultsSourceSchema)
+  })
+  .strict();
+
+export const BillingPlanDefinitionSchema = z
+  .object({
+    id: BillingPlanIdSchema,
+    label: z.string(),
+    monthlyPriceLabel: z.string(),
+    description: z.string()
+  })
+  .strict();
+
+export const CheckoutSessionSchema = z
+  .object({
+    id: z.string(),
+    workspaceId: z.string(),
+    provider: z.literal('paystack'),
+    planId: BillingPlanIdSchema,
+    status: CheckoutStatusSchema,
+    reference: z.string(),
+    checkoutUrl: z.string().optional(),
+    startedAt: z.string(),
+    completedAt: z.string().optional(),
+    failureReason: z.string().optional()
+  })
+  .strict();
+
+export const EntitlementRecordSchema = z
+  .object({
+    id: z.string(),
+    workspaceId: z.string(),
+    provider: z.literal('paystack'),
+    planId: BillingPlanIdSchema,
+    status: EntitlementStatusSchema,
+    activatedAt: z.string().optional(),
+    expiresAt: z.string().optional(),
+    renewedAt: z.string().optional()
+  })
+  .strict();
+
+export const BillingStateSchema = z
+  .object({
+    workspaceId: z.string(),
+    plans: z.array(BillingPlanDefinitionSchema),
+    entitlement: EntitlementRecordSchema.optional(),
+    activeCheckout: CheckoutSessionSchema.optional()
+  })
+  .strict();
+
+export const BagsLinkageRecordSchema = z
+  .object({
+    id: z.string(),
+    workspaceId: z.string(),
+    tokenLabel: z.string(),
+    tokenMasked: z.string(),
+    linkedAt: z.string(),
+    lastVerifiedAt: z.string().optional()
+  })
+  .strict();
+
+export const BagsReadinessCheckSchema = z
+  .object({
+    key: z.enum(['token-linked', 'runtime-configured', 'entitlement-active', 'agent-defaults-loaded']),
+    label: z.string(),
+    ok: z.boolean(),
+    detail: z.string().optional()
+  })
+  .strict();
+
+export const BagsReadinessResultSchema = z
+  .object({
+    id: z.string(),
+    workspaceId: z.string(),
+    ready: z.boolean(),
+    checkedAt: z.string(),
+    checks: z.array(BagsReadinessCheckSchema),
+    summary: z.string()
+  })
+  .strict();
+
+export const BagsStateSchema = z
+  .object({
+    workspaceId: z.string(),
+    linkage: BagsLinkageRecordSchema.optional(),
+    latestReadiness: BagsReadinessResultSchema.optional()
+  })
+  .strict();
+
+export const RuntimeTargetOptionSchema = z
+  .object({
+    id: RuntimeTargetSchema,
+    label: z.string(),
+    description: z.string(),
+    transport: RuntimeTransportSchema,
+    available: z.boolean(),
+    disabledReason: z.string().optional()
+  })
+  .strict();
+
+export const ShellCapabilityDescriptorSchema = z
+  .object({
+    key: z.string(),
+    label: z.string(),
+    available: z.boolean(),
+    mode: z.enum(['full', 'read-only', 'unavailable']),
+    detail: z.string().optional()
+  })
+  .strict();
+
+export const RuntimeAvailabilitySchema = z
+  .object({
+    target: RuntimeTargetSchema,
+    transport: RuntimeTransportSchema,
+    connected: z.boolean(),
+    shellLabel: z.string(),
+    capabilities: z.array(ShellCapabilityDescriptorSchema)
+  })
+  .strict();
+
+export const RuntimeSettingsStateSchema = z
+  .object({
+    workspaceId: z.string(),
+    selectedTarget: RuntimeTargetSchema,
+    autoVerificationEnabled: z.boolean(),
+    options: z.array(RuntimeTargetOptionSchema),
+    availability: RuntimeAvailabilitySchema
+  })
+  .strict();
+
+export const AgentDefaultsStateSchema = z
+  .object({
+    workspaceId: z.string(),
+    bundle: TakomiAgentDefaultsBundleSchema,
+    configurability: z
+      .object({
+        shippedDefaultsPath: z.string(),
+        workspaceOverridesEnabled: z.boolean(),
+        userOverridesEnabled: z.boolean()
+      })
+      .strict()
   })
   .strict();
 

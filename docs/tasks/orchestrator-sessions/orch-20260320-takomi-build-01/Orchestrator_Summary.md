@@ -1,7 +1,7 @@
 # Orchestrator Summary
 
 **Session ID:** `orch-20260320-takomi-build-01`  
-**Status:** Review-gated orchestration manager active, Tasks 01 through 10 approved  
+**Status:** Review-gated orchestration manager active, Tasks 01 through 12 approved  
 **Mode:** `mode-orchestrator`
 
 ## Operating Mode
@@ -27,9 +27,9 @@ This session now acts as the review gatekeeper:
 | 08 Persistence, audit, restore | Approved | Shared persistence contracts, read models, restore snapshots, and desktop/web-local adapters verified after review cleanup |
 | 09 Orchestration engine | Approved | Parent-child session trees, dependency-aware task execution, background child visibility, reload restore, and Takomi defaults parsing verified after review fixes |
 | 10 Git and worktree controls | Approved | Desktop git/worktree foundation, readable naming, subtree scoping, bootstrap readiness, and honest browser fallbacks verified after review fixes |
-| 11 Interventions and recovery | Pending | Waiting on Tasks 05, 06, 07, and 09 |
-| 12 Runtime settings, billing, Bags | Pending | Waiting on Tasks 04 and 08 |
-| 13 Integration hardening | Pending | Waiting on Tasks 03 through 12 |
+| 11 Interventions and recovery | Approved | Recovery flows, intervention controls, and repo-level verification now pass |
+| 12 Runtime settings, billing, Bags | Approved | Shared settings, billing, Bags, and agent-defaults surfaces verified |
+| 13 Integration hardening | Pending | Now unlocked |
 | 14 Docs sync and final synthesis | Pending | Waiting on Task 13 |
 
 ## Build Status
@@ -117,11 +117,26 @@ Task 10 review passed after direct fixes for:
 - a real repo-level verifier via `pnpm verify:worktree-controls`
 - path normalization between Windows filesystem paths and `git worktree list --porcelain` output so created worktrees round-trip correctly
 
+Task 11 review passed after direct fixes for:
+
+- exact-optional payload handling across intervention and recovery types
+- explicit `escalated` recovery-state transitions and persistence
+- mounting intervention controls and recovery prompts in the shared shell instead of leaving them unrendered
+- restoring repo-level verification via `pnpm verify:interventions-recovery` after verifier drift
+
+Task 12 review passed after direct fixes for:
+
+- missing shared contracts and schemas for runtime settings, billing, Bags linkage/readiness, and Takomi default-agent visibility
+- new in-memory persistence stores for settings, billing, and Bags state
+- a shared settings surface and `/settings` dev-shell route for web, desktop, and web-local
+- duplicate persistence exports and an invalid TypeScript indexed `readonly` type that initially broke typecheck
+- executable verification via `pnpm verify:settings-billing-bags`
+
 ## Current Gate
 
-- Tasks `09` and `10` are approved
-- Tasks `11` and `12` are the active green-lit queue
-- Task `13` is still blocked until `11` and `12` are also approved
+- Tasks `11` and `12` are approved
+- Task `13` is the active green-lit queue
+- Task `14` remains blocked until `13` is approved
 
 ## Risks And Blockers
 
@@ -129,4 +144,4 @@ Task 10 review passed after direct fixes for:
 
 ## Recommended Next Wave
 
-Next best delegation options are `11_interventions-and-recovery.task.md` and `12_runtime-settings-billing-bags.task.md`. Task `11` is the strongest next unlock if you want real pause, resume, reroute, replace, and recovery semantics next; Task `12` is the strongest if you want more visible product surfaces and settings work next.
+Next best delegation option is `13_integration-hardening.task.md`, because the remaining work now shifts from individual feature slices to true browser/desktop integration, parity checks, performance checks, and fixing whatever end-to-end gaps still remain.

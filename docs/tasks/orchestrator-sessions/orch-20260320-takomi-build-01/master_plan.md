@@ -129,8 +129,8 @@ When the user comes back with completed work, use this exact control pattern:
 | 8 | `08_persistence-audit-restore.task.md` | Approved | `mode-code` / `vibe-build` | `takomi`, `nextjs-standards` | 2, 3 | `pnpm typecheck` and `pnpm verify:persistence` passed after review fixes for runnable verification wiring and task-record cleanup | Tasks 09 and 12 are now valid |
 | 9 | `09_orchestration-engine.task.md` | Approved | `mode-code` / `vibe-build` | `takomi`, `nextjs-standards` | 2, 5, 6, 7, 8 | `pnpm typecheck` and `pnpm verify:orchestration-engine` passed after review fixes for persisted lineage metadata, reload restore, background run parenting, and Takomi mode parsing | Tasks 10, 11, and 12 are now valid |
 | 10 | `10_git-worktree-controls.task.md` | Approved | `mode-code` / `vibe-build` | `takomi`, `nextjs-standards` | 6, 7, 8, 9 | `pnpm typecheck` and `pnpm verify:worktree-controls` passed after review fixes for Windows bootstrap execution, persisted worktree metadata, audit-event storage, and path normalization | Tasks 11 and 12 remain valid; Task 13 still waits on 11 and 12 |
-| 11 | `11_interventions-and-recovery.task.md` | Pending | `mode-code` / `vibe-build` | `takomi`, `nextjs-standards` | 5, 6, 7, 9 | Not started | Review |
-| 12 | `12_runtime-settings-billing-bags.task.md` | Pending | `mode-code` / `vibe-build` | `takomi`, `frontend-design`, `nextjs-standards` | 4, 8 | Not started | Review |
+| 11 | `11_interventions-and-recovery.task.md` | Approved | `mode-code` / `vibe-build` | `takomi`, `nextjs-standards` | 5, 6, 7, 9 | `pnpm typecheck` and `pnpm verify:interventions-recovery` passed after review fixes for recovery-state persistence, UI mounting, and repo-level verification drift | Task 12, then Task 13 |
+| 12 | `12_runtime-settings-billing-bags.task.md` | Approved | `mode-code` / `vibe-build` | `takomi`, `frontend-design`, `nextjs-standards` | 4, 8 | `pnpm typecheck` and `pnpm verify:settings-billing-bags` passed after review fixes for shared settings contracts, persistence stores, dev-shell settings routes, and repo-level verification wiring | Task 13 |
 | 13 | `13_integration-hardening.task.md` | Pending | `mode-review` / `review_code` | `takomi`, `webapp-testing`, `jstar-reviewer`, `security-audit` | 3-12 | Not started | Review |
 | 14 | `14_docs-sync-and-final-synthesis.task.md` | Pending | `mode-review` / `vibe-syncDocs` | `takomi`, `sync-docs`, `jstar-reviewer` | 13 | Not started | Final summary |
 
@@ -164,8 +164,8 @@ When the user comes back with completed work, use this exact control pattern:
 - [x] Task 8 reviewed and approved
 - [x] Task 9 reviewed and approved
 - [x] Task 10 reviewed and approved
-- [ ] Task 11 reviewed and approved
-- [ ] Task 12 reviewed and approved
+- [x] Task 11 reviewed and approved
+- [x] Task 12 reviewed and approved
 - [ ] Task 13 reviewed and approved
 - [ ] Task 14 reviewed and approved
 
@@ -186,17 +186,18 @@ When the user comes back with completed work, use this exact control pattern:
 - 2026-03-20: Task `08_persistence-audit-restore.task.md` required direct review fixes for repo-level verification wiring (`pnpm verify:persistence`) and task-record cleanup after the builder moved the packet to `completed/` while it still reported `Pending`.
 - 2026-03-20: Task `09_orchestration-engine.task.md` required direct review fixes for persisted session metadata needed to restore lineage after reload, background child-parent correlation on restore, repo-level verification wiring (`pnpm verify:orchestration-engine`), and agent-definition parsing that matches the real `.agent/Takomi-Agents/custom_modes.yaml` group format.
 - 2026-03-20: Task `10_git-worktree-controls.task.md` required direct review fixes for Windows-safe dependency bootstrap execution, exact optional payload construction, persisted audit-event storage, worktree metadata retention across git refresh, repo-level verification wiring (`pnpm verify:worktree-controls`), and path normalization between Windows filesystem paths and `git worktree list --porcelain` output.
+- 2026-03-20: Task `11_interventions-and-recovery.task.md` required direct review fixes for exact-optional payload boundaries, explicit `escalated` recovery-state handling, visible shared-shell intervention/recovery mounting, repo-level verification wiring (`pnpm verify:interventions-recovery`), and later cleanup when that verifier file drifted out of the repo.
+- 2026-03-20: Task `12_runtime-settings-billing-bags.task.md` required direct review implementation for the missing shared settings, billing, Bags, and agent-defaults surfaces, plus follow-up fixes for duplicate persistence exports, a broken indexed `readonly` type, and repo-level verification wiring (`pnpm verify:settings-billing-bags`).
 
 ## Next Tasks Ready To Spawn
 
-1. `11_interventions-and-recovery.task.md`
-2. `12_runtime-settings-billing-bags.task.md`
+1. `13_integration-hardening.task.md`
 
 ## Current Review Focus
 
-- Tasks `09` and `10` are approved and the workspace/worktree boundary layer is no longer blocking follow-on work
-- Tasks `11` and `12` are the active green-lit queue
-- Task `13` remains locked until Tasks `11` and `12` are also approved
+- Tasks `11` and `12` are approved and the visible product-control/settings layer is now in place
+- Task `13` is the active green-lit queue
+- Task `14` remains locked until Task `13` is approved
 
 ## Acceptance Snapshot
 

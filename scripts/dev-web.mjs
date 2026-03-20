@@ -1,10 +1,27 @@
 import { renderToStaticMarkup } from 'react-dom/server';
 import { createWebAppBootstrap, renderWebApp } from '../apps/web/src/index.ts';
 import { readJson, renderAppPage, startStatusServer } from './dev-common.mjs';
+import {
+  SettingsView,
+  getTheme,
+  mockAgentDefaultsState,
+  mockBagsState,
+  mockBillingState,
+  mockRuntimeSettingsState,
+} from '../packages/ui/src/index.ts';
 
 const workspace = await readJson('package.json');
 const webApp = createWebAppBootstrap();
 const renderedShell = renderToStaticMarkup(renderWebApp(webApp));
+const renderedSettings = renderToStaticMarkup(
+  SettingsView({
+    theme: getTheme('dark'),
+    runtime: mockRuntimeSettingsState,
+    billing: mockBillingState,
+    bags: mockBagsState,
+    agentDefaults: mockAgentDefaultsState,
+  })
+);
 
 await startStatusServer({
   name: 'takomi-web',
@@ -34,6 +51,15 @@ await startStatusServer({
         shell: 'v6-shared-workspace',
         packages: ['contracts', 'orchestration', 'runtime-codex', 'persistence', 'ui']
       }, null, 2)
+    }),
+    '/settings': async () => ({
+      status: 200,
+      headers: { 'content-type': 'text/html; charset=utf-8' },
+      body: renderAppPage({
+        title: 'Takomi Web Settings',
+        description: 'Takomi shared runtime settings, billing, verification, and agent defaults surface.',
+        body: renderedSettings,
+      }),
     })
   }
 });

@@ -1,12 +1,12 @@
-/* ── Layout Primitives ── */
+/* Layout Primitives */
 export { AppShell } from './shell';
 export type { AppShellProps } from './shell';
 
-/* ── Design Tokens & Theme ── */
+/* Design Tokens & Theme */
 export { getTheme, uiTokens } from './tokens';
 export type { ThemeMode, ThemeTokens } from './theme';
 
-/* ── Components ── */
+/* Components */
 export { PrimaryRail } from './components/PrimaryRail';
 export type { PrimaryRailProps } from './components/PrimaryRail';
 
@@ -38,11 +38,35 @@ export { InterventionControls, deriveInterventionActions } from './components/In
 export type {
   InterventionControlsProps,
   InterventionActionKind,
-  InterventionActionDescriptor
+  InterventionActionDescriptor,
 } from './components/InterventionControls';
 
 export { RecoveryPrompt } from './components/RecoveryPrompt';
 export type { RecoveryPromptProps, RecoveryFlowKind } from './components/RecoveryPrompt';
 
-/* ── Mock Data ── */
-export { mockWorkspace, mockSessions, mockTranscript, mockActiveSessionId } from './mock-data';
+export { RuntimeSettings } from './components/RuntimeSettings';
+export type { RuntimeSettingsProps } from './components/RuntimeSettings';
+
+export { BillingSettings } from './components/BillingSettings';
+export type { BillingSettingsProps } from './components/BillingSettings';
+
+export { BagsSettings } from './components/BagsSettings';
+export type { BagsSettingsProps } from './components/BagsSettings';
+
+export { AgentDefinitionsSettings } from './components/AgentDefinitionsSettings';
+export type { AgentDefinitionsSettingsProps } from './components/AgentDefinitionsSettings';
+
+export { SettingsView } from './components/SettingsView';
+export type { SettingsViewProps } from './components/SettingsView';
+
+/* Mock Data */
+export {
+  mockWorkspace,
+  mockSessions,
+  mockTranscript,
+  mockActiveSessionId,
+  mockRuntimeSettingsState,
+  mockBillingState,
+  mockBagsState,
+  mockAgentDefaultsState,
+} from './mock-data';

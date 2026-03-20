@@ -12,6 +12,9 @@ import type {
   TaskGraphNode
 } from './task-graph.js';
 import type { InterventionRequest, InterventionOutcome, RecoveryDescriptor, RecoveryAction } from './intervention.js';
+import type { BillingState, CheckoutSession, EntitlementRecord } from './billing.js';
+import type { BagsLinkageRecord, BagsReadinessResult, BagsState } from './bags.js';
+import type { RuntimeSettingsState } from './settings.js';
 
 // ---------------------------------------------------------------------------
 // Cursor-based pagination
@@ -142,6 +145,24 @@ export interface RecoveryStore {
   listActions(recoveryId: string): Promise<readonly RecoveryAction[]>;
 }
 
+export interface BillingStore {
+  getState(workspaceId: string): Promise<BillingState | undefined>;
+  saveCheckout(session: CheckoutSession): Promise<void>;
+  saveEntitlement(record: EntitlementRecord): Promise<void>;
+}
+
+export interface BagsStore {
+  getState(workspaceId: string): Promise<BagsState | undefined>;
+  saveLinkage(record: BagsLinkageRecord): Promise<void>;
+  clearLinkage(workspaceId: string): Promise<void>;
+  saveReadiness(result: BagsReadinessResult): Promise<void>;
+}
+
+export interface RuntimeSettingsStore {
+  getState(workspaceId: string): Promise<RuntimeSettingsState | undefined>;
+  saveState(state: RuntimeSettingsState): Promise<void>;
+}
+
 // ---------------------------------------------------------------------------
 // Task Graph Store
 // ---------------------------------------------------------------------------
@@ -223,6 +244,9 @@ export interface PersistenceAdapter {
   readonly restoreSnapshots: RestoreSnapshotStore;
   readonly interventions: InterventionStore;
   readonly recovery: RecoveryStore;
+  readonly billing?: BillingStore;
+  readonly bags?: BagsStore;
+  readonly runtimeSettings?: RuntimeSettingsStore;
   readonly taskGraph: TaskGraphStore;
   readonly orchestrationSessions: OrchestrationSessionStore;
   readonly readModels: ReadModelProvider;

@@ -2,6 +2,14 @@ import { renderToStaticMarkup } from 'react-dom/server';
 import { createWebAppBootstrap, renderWebApp } from '../apps/web/src/index.ts';
 import { launchBridge } from '../apps/local-bridge/src/index.ts';
 import { readJson, renderAppPage, startStatusServer } from './dev-common.mjs';
+import {
+  SettingsView,
+  getTheme,
+  mockAgentDefaultsState,
+  mockBagsState,
+  mockBillingState,
+  mockRuntimeSettingsState,
+} from '../packages/ui/src/index.ts';
 
 const workspace = await readJson('package.json');
 const webPort = Number(process.env['TAKOMI_WEB_LOCAL_PORT'] ?? '3002');
@@ -22,6 +30,24 @@ const webApp = createWebAppBootstrap({
   }
 });
 const renderedShell = renderToStaticMarkup(renderWebApp(webApp));
+const renderedSettings = renderToStaticMarkup(
+  SettingsView({
+    theme: getTheme('dark'),
+    runtime: {
+      ...mockRuntimeSettingsState,
+      selectedTarget: 'remote',
+      availability: {
+        ...mockRuntimeSettingsState.availability,
+        target: 'remote',
+        transport: 'browser-safe',
+        shellLabel: 'Web-local shell',
+      },
+    },
+    billing: mockBillingState,
+    bags: mockBagsState,
+    agentDefaults: mockAgentDefaultsState,
+  })
+);
 
 const web = await startStatusServer({
   name: 'takomi-web-local',
@@ -55,6 +81,15 @@ const web = await startStatusServer({
         wsUrl: `ws://${bridgeHost}:${bridgePort}/ws`,
         capabilities
       }, null, 2)
+    }),
+    '/settings': async () => ({
+      status: 200,
+      headers: { 'content-type': 'text/html; charset=utf-8' },
+      body: renderAppPage({
+        title: 'Takomi Web Local Settings',
+        description: 'Takomi shared runtime settings, billing, verification, and agent defaults surface.',
+        body: renderedSettings,
+      }),
     })
   }
 });

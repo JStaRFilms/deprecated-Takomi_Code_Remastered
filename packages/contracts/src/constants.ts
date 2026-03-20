@@ -93,10 +93,18 @@ export type BillingAuditEventKind = (typeof BILLING_AUDIT_EVENT_KINDS)[number];
 
 export const BAGS_AUDIT_EVENT_KINDS = [
   'bags.token_linked',
+  'bags.token_unlinked',
   'bags.verification_checked',
   'bags.verification_failed'
 ] as const;
 export type BagsAuditEventKind = (typeof BAGS_AUDIT_EVENT_KINDS)[number];
+
+export const SETTINGS_AUDIT_EVENT_KINDS = [
+  'settings.runtime_target_changed',
+  'settings.auto_verification_toggled',
+  'settings.agent_defaults_viewed'
+] as const;
+export type SettingsAuditEventKind = (typeof SETTINGS_AUDIT_EVENT_KINDS)[number];
 
 export const AUDIT_EVENT_KINDS = [
   ...NORMALIZED_RUNTIME_EVENT_KINDS,
@@ -104,7 +112,8 @@ export const AUDIT_EVENT_KINDS = [
   ...INTERVENTION_AUDIT_EVENT_KINDS,
   ...RECOVERY_AUDIT_EVENT_KINDS,
   ...BILLING_AUDIT_EVENT_KINDS,
-  ...BAGS_AUDIT_EVENT_KINDS
+  ...BAGS_AUDIT_EVENT_KINDS,
+  ...SETTINGS_AUDIT_EVENT_KINDS
 ] as const;
 export type AuditEventKind = (typeof AUDIT_EVENT_KINDS)[number];
 
