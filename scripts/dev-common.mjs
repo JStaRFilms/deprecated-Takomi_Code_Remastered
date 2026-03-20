@@ -45,6 +45,41 @@ export function renderStatusPage({ title, subtitle, details }) {
 </html>`;
 }
 
+export function renderAppPage({ title, body, description }) {
+  return `<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="description" content="${description}" />
+    <title>${title}</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet" />
+    <style>
+      :root { color-scheme: dark; }
+      * { box-sizing: border-box; }
+      html, body { margin: 0; min-height: 100%; background: #0c0c0d; }
+      body { font-family: Inter, sans-serif; color: #e5e5e5; }
+      [data-component="app-shell"] { min-height: 100vh; }
+      @media (max-width: 1180px) {
+        [data-component="inspector"] { display: none !important; }
+      }
+      @media (max-width: 920px) {
+        [data-component="sessions-sidebar"] { display: none !important; }
+        [data-component="transcript-pane"] { padding-left: 20px !important; padding-right: 20px !important; }
+        [data-component="floating-composer"] { padding-left: 16px !important; padding-right: 16px !important; }
+      }
+      @media (max-width: 720px) {
+        [data-component="workspace-header"] { padding-left: 16px !important; padding-right: 16px !important; }
+        [data-component="primary-rail"] { width: 48px !important; min-width: 48px !important; }
+      }
+    </style>
+  </head>
+  <body>${body}</body>
+</html>`;
+}
+
 export async function startStatusServer({ name, port, title, subtitle, details, routes = {} }) {
   const server = http.createServer(async (req, res) => {
     const url = req.url ?? '/';

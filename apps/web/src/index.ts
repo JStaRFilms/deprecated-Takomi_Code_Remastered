@@ -1,22 +1,38 @@
-import type { ProjectDescriptor, SessionDescriptor, WorkspaceDescriptor } from '@takomi/contracts';
-import { AppShell } from '@takomi/ui';
+import type { ReactElement } from 'react';
+import type { SessionDescriptor, TranscriptPart, WorkspaceDescriptor } from '@takomi/contracts';
+import type { ThemeMode } from '@takomi/ui';
+import {
+  AppShell,
+  mockWorkspace,
+  mockSessions,
+  mockTranscript,
+  mockActiveSessionId,
+} from '@takomi/ui';
 
 export interface WebAppBootstrap {
   readonly workspace: WorkspaceDescriptor;
-  readonly project: ProjectDescriptor;
   readonly sessions: readonly SessionDescriptor[];
+  readonly transcript?: readonly TranscriptPart[];
+  readonly activeSessionId?: string;
+  readonly themeMode?: ThemeMode;
 }
 
-export function createWebAppBootstrap(data: WebAppBootstrap): WebAppBootstrap {
-  return data;
+export function createWebAppBootstrap(data?: Partial<WebAppBootstrap>): WebAppBootstrap {
+  return {
+    workspace: data?.workspace ?? mockWorkspace,
+    sessions: data?.sessions ?? mockSessions,
+    transcript: data?.transcript ?? mockTranscript.parts,
+    activeSessionId: data?.activeSessionId ?? mockActiveSessionId,
+    themeMode: data?.themeMode ?? 'dark',
+  };
 }
 
-export function renderWebApp(data: WebAppBootstrap): JSX.Element {
-  return (
-    <AppShell
-      workspace={data.workspace}
-      sessions={data.sessions}
-      headline={`Takomi Web · ${data.project.name}`}
-    />
-  );
+export function renderWebApp(data: WebAppBootstrap): ReactElement {
+  return AppShell({
+    workspace: data.workspace,
+    sessions: data.sessions,
+    ...(data.transcript ? { transcript: data.transcript } : {}),
+    ...(data.activeSessionId ? { activeSessionId: data.activeSessionId } : {}),
+    themeMode: data.themeMode ?? 'dark',
+  });
 }

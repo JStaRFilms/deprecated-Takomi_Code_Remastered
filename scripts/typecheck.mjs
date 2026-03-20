@@ -11,12 +11,19 @@ const tscCandidates = existsSync(localTsc)
   : (process.platform === 'win32'
       ? [{ command: 'tsc.cmd', args: [] }, { command: 'tsc', args: [] }]
       : [{ command: 'tsc', args: [] }]);
+const rootTsconfigPath = path.join(repoRoot, 'tsconfig.json');
 
-for (const candidate of tscCandidates) {
-  const result = spawnSync(candidate.command, [...candidate.args, '-p', 'tsconfig.json', '--noEmit'], {
+function runTypecheck(candidate) {
+  console.log('Typechecking workspace references via TypeScript build mode');
+
+  return spawnSync(candidate.command, [...candidate.args, '-b', rootTsconfigPath], {
     cwd: repoRoot,
     stdio: 'inherit'
   });
+}
+
+for (const candidate of tscCandidates) {
+  const result = runTypecheck(candidate);
 
   if (!result.error && result.status !== null) {
     process.exit(result.status);

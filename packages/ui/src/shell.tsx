@@ -1,71 +1,129 @@
-import type { SessionDescriptor, WorkspaceDescriptor } from '@takomi/contracts';
-import { uiTokens } from './tokens';
+import type { ReactElement } from 'react';
+import type { SessionDescriptor, TranscriptPart, WorkspaceDescriptor } from '@takomi/contracts';
+import type { ThemeMode, ThemeTokens } from './theme';
+import { getTheme } from './tokens';
+import { PrimaryRail } from './components/PrimaryRail';
+import { SessionsSidebar } from './components/SessionsSidebar';
+import { WorkspaceHeader } from './components/WorkspaceHeader';
+import { TranscriptPane } from './components/TranscriptPane';
+import { FloatingComposer } from './components/FloatingComposer';
+import { Inspector } from './components/Inspector';
 
 export interface AppShellProps {
   readonly workspace: WorkspaceDescriptor;
   readonly sessions: readonly SessionDescriptor[];
+  readonly transcript?: readonly TranscriptPart[];
+  readonly activeSessionId?: string | null;
   readonly headline?: string;
+  readonly themeMode?: ThemeMode;
+  /** Collapse sidebars for narrow viewports */
+  readonly compactMode?: boolean;
 }
 
+/**
+ * Shared v6 workspace shell — the primary surface of Takomi.
+ * Four-panel layout: PrimaryRail · SessionsSidebar · TranscriptCenter · Inspector
+ * Runs identically in Electron and browser mounts.
+ */
 export function AppShell({
   workspace,
   sessions,
-  headline = 'Takomi Code'
-}: AppShellProps): JSX.Element {
+  transcript = [],
+  activeSessionId = null,
+  headline: _headline,
+  themeMode = 'dark',
+  compactMode = false,
+}: AppShellProps): ReactElement {
+  const theme: ThemeTokens = getTheme(themeMode);
+
+  const activeSession = activeSessionId
+    ? sessions.find((s) => s.id === activeSessionId) ?? null
+    : sessions[0] ?? null;
+
+  const resolvedActiveId = activeSession?.id ?? null;
+
   return (
     <div
       data-component="app-shell"
+      data-theme={themeMode}
       style={{
-        color: uiTokens.text,
-        background: `linear-gradient(180deg, ${uiTokens.background} 0%, ${uiTokens.backgroundSoft} 100%)`,
-        minHeight: '100vh',
-        padding: '32px'
+        display: 'flex',
+        height: '100vh',
+        width: '100vw',
+        overflow: 'hidden',
+        fontFamily: "'Inter', sans-serif",
+        color: theme.textPrimary,
+        background: theme.bgApp,
+        fontSize: '13px',
+        WebkitFontSmoothing: 'antialiased',
       }}
     >
-      <section
+      {/* 1. Primary rail */}
+      <PrimaryRail theme={theme} />
+
+      {/* 2. Sessions sidebar */}
+      <SessionsSidebar
+        theme={theme}
+        sessions={sessions}
+        activeSessionId={resolvedActiveId}
+        workspaceName={workspace.name}
+        collapsed={compactMode}
+      />
+
+      {/* 3. Center stage */}
+      <div
+        data-component="center-stage"
         style={{
-          maxWidth: '1200px',
-          margin: '0 auto',
-          border: `1px solid ${uiTokens.border}`,
-          borderRadius: '24px',
-          background: uiTokens.surface,
-          boxShadow: '0 24px 80px rgba(0, 0, 0, 0.24)',
-          padding: '24px'
+          flex: 1,
+          display: 'flex',
+          flexDirection: 'column',
+          position: 'relative',
+          overflow: 'hidden',
+          minWidth: 0,
+          background: theme.bgMain,
+          boxShadow: theme.mode === 'dark' ? '-10px 0 30px rgba(0,0,0,0.5)' : '-4px 0 12px rgba(0,0,0,0.06)',
+          zIndex: 30,
         }}
       >
-        <header style={{ marginBottom: '24px' }}>
-          <p style={{ margin: 0, color: uiTokens.accent }}>Shared React shell scaffold</p>
-          <h1 style={{ margin: '8px 0 0', fontSize: 'clamp(2rem, 4vw, 3.5rem)' }}>{headline}</h1>
-          <p style={{ margin: '12px 0 0', color: uiTokens.textMuted }}>
-            Workspace: {workspace.name} · Target: {workspace.target} · Sessions: {sessions.length}
-          </p>
-        </header>
+        <WorkspaceHeader
+          theme={theme}
+          projectName={workspace.name}
+          branchName={workspace.branchName ?? 'main'}
+          workspaceShortId={workspace.id}
+          engineStatus={activeSession?.status === 'running' ? 'running' : 'idle'}
+        />
 
-        <div
-          style={{
-            display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))',
-            gap: '16px'
-          }}
-        >
-          {sessions.map((session) => (
-            <article
-              key={session.id}
-              style={{
-                border: `1px solid ${uiTokens.border}`,
-                borderRadius: '18px',
-                padding: '16px',
-                background: uiTokens.surfaceElevated
-              }}
-            >
-              <strong>{session.name}</strong>
-              <div style={{ color: uiTokens.textMuted, marginTop: '8px' }}>
-                {session.kind} · {session.status}
-              </div>
-            </article>
-          ))}
+        <div style={{ flex: 1, position: 'relative', overflow: 'hidden' }}>
+          <TranscriptPane
+            theme={theme}
+            parts={transcript}
+            sessionName={activeSession?.name ?? 'New Session'}
+          />
+
+          <FloatingComposer
+            theme={theme}
+            mode={activeSession?.status === 'running' ? 'stop' : activeSession?.status === 'paused' ? 'resume' : 'send'}
+            disabled={activeSession?.status === 'running'}
+          />
         </div>
-      </section>
+      </div>
+
+      {/* 4. Right inspector */}
+      <Inspector
+        theme={theme}
+        sessionName={activeSession?.name ?? 'No active session'}
+        runStatus={activeSession?.status ?? 'idle'}
+        runDescription={
+          activeSession?.status === 'running'
+            ? 'Takomi is actively processing steps in the background…'
+            : activeSession?.status === 'paused'
+              ? 'Execution is paused pending user approval or action.'
+              : 'Waiting for Takomi output.'
+        }
+        collapsed={compactMode}
+      />
     </div>
   );
 }
+
+export type { ThemeMode, ThemeTokens };

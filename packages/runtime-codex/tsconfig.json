@@ -4,9 +4,9 @@
     "composite": true,
     "declaration": true,
     "declarationMap": true,
-    "outDir": "./dist",
-    "rootDir": "./src"
+    "outDir": "./dist"
   },
-  "include": ["src/**/*.ts", "../../types/**/*.d.ts"],
+  "references": [{ "path": "../contracts" }],
+  "include": ["src/**/*.ts"],
   "exclude": ["dist", "node_modules"]
 }

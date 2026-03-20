@@ -1,22 +1,38 @@
-import type { ProjectDescriptor, SessionDescriptor, WorkspaceDescriptor } from '@takomi/contracts';
-import { AppShell } from '@takomi/ui';
+import type { ReactElement } from 'react';
+import type { SessionDescriptor, TranscriptPart, WorkspaceDescriptor } from '@takomi/contracts';
+import type { ThemeMode } from '@takomi/ui';
+import {
+  AppShell,
+  mockWorkspace,
+  mockSessions,
+  mockTranscript,
+  mockActiveSessionId,
+} from '@takomi/ui';
 
 export interface DesktopAppBootstrap {
   readonly workspace: WorkspaceDescriptor;
-  readonly project: ProjectDescriptor;
   readonly sessions: readonly SessionDescriptor[];
+  readonly transcript?: readonly TranscriptPart[];
+  readonly activeSessionId?: string;
+  readonly themeMode?: ThemeMode;
 }
 
-export function createDesktopAppBootstrap(data: DesktopAppBootstrap): DesktopAppBootstrap {
-  return data;
+export function createDesktopAppBootstrap(data?: Partial<DesktopAppBootstrap>): DesktopAppBootstrap {
+  return {
+    workspace: data?.workspace ?? mockWorkspace,
+    sessions: data?.sessions ?? mockSessions,
+    transcript: data?.transcript ?? mockTranscript.parts,
+    activeSessionId: data?.activeSessionId ?? mockActiveSessionId,
+    themeMode: data?.themeMode ?? 'dark',
+  };
 }
 
-export function renderDesktopApp(data: DesktopAppBootstrap): JSX.Element {
-  return (
-    <AppShell
-      workspace={data.workspace}
-      sessions={data.sessions}
-      headline={`Takomi Desktop · ${data.project.name}`}
-    />
-  );
+export function renderDesktopApp(data: DesktopAppBootstrap): ReactElement {
+  return AppShell({
+    workspace: data.workspace,
+    sessions: data.sessions,
+    ...(data.transcript ? { transcript: data.transcript } : {}),
+    ...(data.activeSessionId ? { activeSessionId: data.activeSessionId } : {}),
+    themeMode: data.themeMode ?? 'dark',
+  });
 }
