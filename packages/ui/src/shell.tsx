@@ -71,6 +71,11 @@ export function AppShell({
         ? 'Execution is paused pending user approval or action.'
         : 'Waiting for Takomi output.');
 
+  // Resolve current worktree context
+  const activeWorktree = workspace.worktrees?.find(wt => wt.active || wt.id === workspace.currentWorktreeId);
+  const worktreeLabel = activeWorktree?.label ?? null;
+  const worktreePath = activeWorktree?.rootPath ?? null;
+
   return (
     <div
       data-component="app-shell"
@@ -120,6 +125,14 @@ export function AppShell({
           branchName={workspace.branchName ?? 'main'}
           workspaceShortId={workspace.id}
           engineStatus={resolvedRunStatus}
+          dirty={workspace.dirty ?? workspace.git?.dirty ?? false}
+          headSha={workspace.git?.headSha}
+          upstreamBranchName={workspace.git?.upstreamBranchName}
+          aheadCount={workspace.git?.aheadCount}
+          behindCount={workspace.git?.behindCount}
+          worktreeLabel={worktreeLabel}
+          worktreePath={worktreePath}
+          worktreeSwitchAvailable={true}
         />
 
         <div style={{ flex: 1, position: 'relative', overflow: 'hidden' }}>

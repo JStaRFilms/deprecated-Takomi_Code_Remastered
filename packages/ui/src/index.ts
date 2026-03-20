@@ -28,5 +28,11 @@ export type { InspectorProps } from './components/Inspector';
 export { StatusPill } from './components/StatusPill';
 export type { StatusPillProps, StatusVariant } from './components/StatusPill';
 
+export { BranchBadge } from './components/BranchBadge';
+export type { BranchBadgeProps } from './components/BranchBadge';
+
+export { WorktreeManager } from './components/WorktreeManager';
+export type { WorktreeManagerProps } from './components/WorktreeManager';
+
 /* ── Mock Data ── */
 export { mockWorkspace, mockSessions, mockTranscript, mockActiveSessionId } from './mock-data';

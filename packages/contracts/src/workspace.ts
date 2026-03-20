@@ -36,6 +36,31 @@ export interface GitState {
   readonly behindCount?: number | undefined;
 }
 
+/**
+ * Bootstrap status for a worktree after creation.
+ * Tracks env file carryover, dependency install, and overall readiness.
+ */
+export interface WorktreeBootstrapStatus {
+  readonly state: 'pending' | 'running' | 'completed' | 'failed' | 'skipped';
+  readonly envFilesCopied: readonly string[];
+  readonly envFilesBlocked: readonly string[];
+  readonly dependencyInstallRan: boolean;
+  readonly dependencyInstallExitCode?: number | undefined;
+  readonly error?: string | undefined;
+  readonly startedAt?: string | undefined;
+  readonly completedAt?: string | undefined;
+}
+
+/**
+ * Human-readable worktree naming config.
+ * Used to generate folder names like <project-slug>-<task-slug>-agent-<n>.
+ */
+export interface WorktreeNamingConfig {
+  readonly projectSlug: string;
+  readonly taskSlug: string;
+  readonly agentIndex: number;
+}
+
 export interface WorktreeReference {
   readonly id: string;
   readonly workspaceId: string;
@@ -48,6 +73,10 @@ export interface WorktreeReference {
   readonly parentWorktreeId: string | null;
   readonly inheritedFromWorkspaceId: string | null;
   readonly createdAt?: string | undefined;
+  /** Human-readable label for display, e.g. "takomi-refactor-auth-agent-1" */
+  readonly label?: string | undefined;
+  /** Bootstrap status after creation */
+  readonly bootstrapStatus?: WorktreeBootstrapStatus | undefined;
 }
 
 export interface WorkspaceDescriptor extends WorkspaceReference {

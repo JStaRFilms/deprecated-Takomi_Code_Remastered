@@ -1,7 +1,7 @@
 # Orchestrator Summary
 
 **Session ID:** `orch-20260320-takomi-build-01`  
-**Status:** Review-gated orchestration manager active, Tasks 01 through 09 approved  
+**Status:** Review-gated orchestration manager active, Tasks 01 through 10 approved  
 **Mode:** `mode-orchestrator`
 
 ## Operating Mode
@@ -26,7 +26,7 @@ This session now acts as the review gatekeeper:
 | 07 Web local bridge | Approved | Browser-safe local bridge now verifies HTTP capability detection, typed payload parity, defaults loading, one streamed runtime event path, and shared workspace rendering on the web-local root |
 | 08 Persistence, audit, restore | Approved | Shared persistence contracts, read models, restore snapshots, and desktop/web-local adapters verified after review cleanup |
 | 09 Orchestration engine | Approved | Parent-child session trees, dependency-aware task execution, background child visibility, reload restore, and Takomi defaults parsing verified after review fixes |
-| 10 Git and worktree controls | Pending | Waiting on Tasks 06, 07, 08, and 09 |
+| 10 Git and worktree controls | Approved | Desktop git/worktree foundation, readable naming, subtree scoping, bootstrap readiness, and honest browser fallbacks verified after review fixes |
 | 11 Interventions and recovery | Pending | Waiting on Tasks 05, 06, 07, and 09 |
 | 12 Runtime settings, billing, Bags | Pending | Waiting on Tasks 04 and 08 |
 | 13 Integration hardening | Pending | Waiting on Tasks 03 through 12 |
@@ -36,7 +36,7 @@ This session now acts as the review gatekeeper:
 
 - Desktop build: Electron main/preload/runtime foundation verified with real Electron boot
 - Web-local build: Local bridge foundation verified with executable startup, shared workspace rendering, HTTP bridge requests, and one streamed runtime event path
-- Codex runtime parity: Desktop-local and web-local transport foundations are both verified, both have matching persistence adapter foundations, and the shared orchestration engine now restores session lineage across reload, but real filesystem, Git, and worktree mutation remain capability-gated stubs
+- Codex runtime parity: Desktop-local and web-local transport foundations are both verified, both have matching persistence adapter foundations, the shared orchestration engine restores session lineage across reload, and desktop worktree management is now verified with honest web-local capability gating still in place for mutation
 - V6 workspace fidelity: Approved mock-data shell foundation
 - Interop bundle status: Approved foundation
 
@@ -109,11 +109,19 @@ Task 09 review passed after direct fixes for:
 - Takomi agent-definition parsing so the loader matches the real nested `groups` structure in `.agent/Takomi-Agents/custom_modes.yaml`
 - executable verification via `pnpm verify:orchestration-engine`
 
+Task 10 review passed after direct fixes for:
+
+- Windows-safe command execution during dependency bootstrap for newly created worktrees
+- exact optional payload construction so desktop and web transport worktree actions satisfy the locked TypeScript contracts cleanly
+- persisted audit-event storage plus worktree metadata merge logic so labels, bootstrap status, and active flags survive git refresh and restore
+- a real repo-level verifier via `pnpm verify:worktree-controls`
+- path normalization between Windows filesystem paths and `git worktree list --porcelain` output so created worktrees round-trip correctly
+
 ## Current Gate
 
-- Task `09` is approved
-- Tasks `10`, `11`, and `12` are the active green-lit queue
-- Task `13` is still blocked until `10`, `11`, and `12` are also approved
+- Tasks `09` and `10` are approved
+- Tasks `11` and `12` are the active green-lit queue
+- Task `13` is still blocked until `11` and `12` are also approved
 
 ## Risks And Blockers
 
@@ -121,4 +129,4 @@ Task 09 review passed after direct fixes for:
 
 ## Recommended Next Wave
 
-Next best delegation options are `10_git-worktree-controls.task.md`, `11_interventions-and-recovery.task.md`, and `12_runtime-settings-billing-bags.task.md`. Task `10` is the strongest next unlock if you want the orchestration tree to start controlling real workspace/worktree boundaries next; Task `11` is the strongest if you want user intervention and recovery semantics next.
+Next best delegation options are `11_interventions-and-recovery.task.md` and `12_runtime-settings-billing-bags.task.md`. Task `11` is the strongest next unlock if you want real pause, resume, reroute, replace, and recovery semantics next; Task `12` is the strongest if you want more visible product surfaces and settings work next.

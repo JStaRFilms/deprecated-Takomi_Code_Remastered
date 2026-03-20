@@ -38,11 +38,30 @@ export interface WorkspaceStatusIpcPayload {
   readonly workspaceId: string;
 }
 
+export interface WorkspaceWorktreeCreateIpcPayload {
+  readonly workspaceId: string;
+  readonly branchName: string;
+  readonly taskSlug: string;
+  /** Human-readable label, e.g. "takomi-refactor-auth-agent-1" */
+  readonly label: string;
+  /** Optional: run bootstrap after creation (env carryover + dependency install) */
+  readonly runBootstrap?: boolean;
+  /** Optional: allowlist of env files to carry over (defaults to project config) */
+  readonly envCarryoverAllowlist?: readonly string[];
+  /** Optional: run dependency install (e.g. pnpm install) after worktree creation */
+  readonly installDependencies?: boolean;
+  readonly reason?: string;
+}
+
 export interface WorkspaceWorktreeSwitchIpcPayload {
   readonly workspaceId: string;
   readonly worktreeId: string;
   readonly sessionSubtreeRootSessionId?: string;
   readonly reason?: string;
+}
+
+export interface WorkspaceGitRefreshIpcPayload {
+  readonly workspaceId: string;
 }
 
 export interface SessionListIpcPayload {
@@ -91,7 +110,9 @@ export interface IpcPayloadMap {
   readonly 'takomi:workspace:list': WorkspaceListIpcPayload;
   readonly 'takomi:workspace:open': WorkspaceOpenIpcPayload;
   readonly 'takomi:workspace:status': WorkspaceStatusIpcPayload;
+  readonly 'takomi:workspace:worktree:create': WorkspaceWorktreeCreateIpcPayload;
   readonly 'takomi:workspace:worktree:switch': WorkspaceWorktreeSwitchIpcPayload;
+  readonly 'takomi:workspace:git:refresh': WorkspaceGitRefreshIpcPayload;
   readonly 'takomi:session:list': SessionListIpcPayload;
   readonly 'takomi:session:create': SessionCreateIpcPayload;
   readonly 'takomi:runtime:connect': RuntimeConnectIpcPayload;
@@ -109,7 +130,9 @@ export type IpcPayloadFor<TChannel extends IpcChannel> = TChannel extends keyof 
 export type WorkspaceListIpcEnvelope = IpcEnvelope<WorkspaceListIpcPayload>;
 export type WorkspaceOpenIpcEnvelope = IpcEnvelope<WorkspaceOpenIpcPayload>;
 export type WorkspaceStatusIpcEnvelope = IpcEnvelope<WorkspaceStatusIpcPayload>;
+export type WorkspaceWorktreeCreateIpcEnvelope = IpcEnvelope<WorkspaceWorktreeCreateIpcPayload>;
 export type WorkspaceWorktreeSwitchIpcEnvelope = IpcEnvelope<WorkspaceWorktreeSwitchIpcPayload>;
+export type WorkspaceGitRefreshIpcEnvelope = IpcEnvelope<WorkspaceGitRefreshIpcPayload>;
 export type SessionListIpcEnvelope = IpcEnvelope<SessionListIpcPayload>;
 export type SessionCreateIpcEnvelope = IpcEnvelope<SessionCreateIpcPayload>;
 export type RuntimeConnectIpcEnvelope = IpcEnvelope<RuntimeConnectIpcPayload>;

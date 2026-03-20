@@ -23,7 +23,9 @@ import type {
   WorkspaceOpenIpcPayload,
   WorkspaceListIpcPayload,
   WorkspaceStatusIpcPayload,
+  WorkspaceWorktreeCreateIpcPayload,
   WorkspaceWorktreeSwitchIpcPayload,
+  WorkspaceGitRefreshIpcPayload,
   SessionListIpcPayload,
   SessionCreateIpcPayload,
   RuntimeConnectIpcPayload,
@@ -32,9 +34,11 @@ import type {
   InterventionSubmitIpcPayload,
   AuditAppendIpcPayload,
   AgentDefaultsLoadIpcPayload,
+  AuditEventEnvelope,
 } from '@takomi/contracts';
-import type { WorkspaceDescriptor, GitState } from '@takomi/contracts';
+import type { WorkspaceDescriptor, GitState, WorktreeReference } from '@takomi/contracts';
 import { DesktopCodexRuntimeManager, loadTakomiAgentDefaultsBundle } from './runtime/index.js';
+import { getGitState, listWorktrees, createWorktree } from './git-service.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -48,6 +52,11 @@ let runtimeSubscriptionCleanup: (() => void) | null = null;
 const getWorkspaceStoragePath = (): string => {
   const userDataPath = app.getPath('userData');
   return path.join(userDataPath, 'workspaces.json');
+};
+
+const getAuditStoragePath = (): string => {
+  const userDataPath = app.getPath('userData');
+  return path.join(userDataPath, 'audit-events.json');
 };
 
 // Load persisted workspaces
@@ -73,29 +82,84 @@ function saveWorkspaces(workspaces: WorkspaceDescriptor[]): void {
   }
 }
 
-// Get Git state for a workspace
-async function getGitState(workspacePath: string): Promise<GitState | null> {
+function loadAuditEvents(): AuditEventEnvelope[] {
   try {
-    const gitDir = path.join(workspacePath, '.git');
-    if (!fs.existsSync(gitDir)) {
-      return null;
+    const storagePath = getAuditStoragePath();
+    if (fs.existsSync(storagePath)) {
+      return JSON.parse(fs.readFileSync(storagePath, 'utf-8'));
     }
-    
-    const headPath = path.join(gitDir, 'HEAD');
-    const headContent = fs.readFileSync(headPath, 'utf-8').trim();
-    
-    let branchName = 'main';
-    if (headContent.startsWith('ref: refs/heads/')) {
-      branchName = headContent.replace('ref: refs/heads/', '');
-    }
-    
-    return {
-      branchName,
-      dirty: false,
-    };
-  } catch {
-    return null;
+  } catch (error) {
+    console.error('Failed to load audit events:', error);
   }
+  return [];
+}
+
+function saveAuditEvents(events: AuditEventEnvelope[]): void {
+  try {
+    const storagePath = getAuditStoragePath();
+    fs.writeFileSync(storagePath, JSON.stringify(events, null, 2));
+  } catch (error) {
+    console.error('Failed to save audit events:', error);
+  }
+}
+
+function mergePersistedWorktreeMetadata(
+  workspace: WorkspaceDescriptor,
+  liveWorktrees: readonly WorktreeReference[]
+): WorktreeReference[] {
+  const persistedByPath = new Map(
+    (workspace.worktrees ?? []).map((worktree) => [worktree.rootPath, worktree])
+  );
+
+  return liveWorktrees.map((liveWorktree) => {
+    const persisted = persistedByPath.get(liveWorktree.rootPath);
+    const isActive =
+      workspace.currentWorktreeId !== undefined && workspace.currentWorktreeId !== null
+        ? liveWorktree.id === workspace.currentWorktreeId
+        : liveWorktree.active;
+
+    return {
+      ...liveWorktree,
+      ...(persisted?.label !== undefined ? { label: persisted.label } : {}),
+      ...(persisted?.bootstrapStatus !== undefined
+        ? { bootstrapStatus: persisted.bootstrapStatus }
+        : {}),
+      ...(persisted?.createdAt !== undefined ? { createdAt: persisted.createdAt } : {}),
+      active: isActive,
+    };
+  });
+}
+
+// Audit event builder helper
+function buildAuditEvent(
+  kind: AuditEventEnvelope['kind'],
+  workspaceId: string,
+  data: Record<string, unknown>,
+  sessionId?: string
+): AuditEventEnvelope {
+  return {
+    id: `audit-${Date.now()}-${Math.random().toString(36).slice(2)}`,
+    kind,
+    timestamp: new Date().toISOString(),
+    subjectId: workspaceId,
+    subjectType: 'workspace',
+    workspaceId,
+    sessionId,
+    actor: { id: 'system', kind: 'system', displayName: 'Desktop Main' },
+    data,
+  };
+}
+
+// In-memory audit event store (persisted alongside workspaces)
+let auditEvents: AuditEventEnvelope[] = loadAuditEvents();
+
+function appendAuditEvent(event: AuditEventEnvelope): void {
+  auditEvents.push(event);
+  // Keep last 10000 events in memory
+  if (auditEvents.length > 10_000) {
+    auditEvents = auditEvents.slice(-10_000);
+  }
+  saveAuditEvents(auditEvents);
 }
 
 // IPC Handler helper
@@ -190,7 +254,7 @@ function registerIpcHandlers(): void {
     }
   });
 
-  // Workspace: Status
+  // Workspace: Status (enhanced with worktree list)
   ipcMain.handle(IPC_CHANNELS.workspaceStatus, async (_event: IpcMainInvokeEvent, envelope: IpcEnvelope<WorkspaceStatusIpcPayload>) => {
     try {
       const { workspaceId } = envelope.payload;
@@ -205,13 +269,34 @@ function registerIpcHandlers(): void {
       }
       
       const git = await getGitState(workspace.rootPath);
+      const worktrees = mergePersistedWorktreeMetadata(
+        workspace,
+        await listWorktrees(workspace.rootPath, workspaceId)
+      );
+      
+      // Emit audit event for git state refresh
+      const auditEvent = buildAuditEvent('workspace.git_state_refreshed', workspaceId, {
+        branchName: git?.branchName ?? null,
+        dirty: git?.dirty ?? false,
+        worktreeCount: worktrees.length,
+      });
+      appendAuditEvent(auditEvent);
+      
       const updatedWorkspace: WorkspaceDescriptor = {
         ...workspace,
         branchName: git?.branchName,
         dirty: git?.dirty,
         git: git ?? undefined,
+        worktrees,
         updatedAt: new Date().toISOString(),
       };
+      
+      // Persist updated state
+      const idx = workspaces.findIndex(w => w.id === workspaceId);
+      if (idx >= 0) {
+        workspaces[idx] = updatedWorkspace;
+        saveWorkspaces(workspaces);
+      }
       
       return createResponse(IPC_CHANNELS.workspaceStatus, { workspace: updatedWorkspace }, workspaceId);
     } catch (error) {
@@ -222,12 +307,144 @@ function registerIpcHandlers(): void {
     }
   });
 
-  // Workspace: Worktree Switch
+  // Workspace: Worktree Create
+  ipcMain.handle(IPC_CHANNELS.workspaceWorktreeCreate, async (_event: IpcMainInvokeEvent, envelope: IpcEnvelope<WorkspaceWorktreeCreateIpcPayload>) => {
+    try {
+      const { workspaceId, branchName, taskSlug, label, runBootstrap, envCarryoverAllowlist, installDependencies, reason } = envelope.payload;
+      
+      const workspaces = loadWorkspaces();
+      const workspace = workspaces.find(w => w.id === workspaceId);
+      
+      if (!workspace) {
+        return createErrorResponse(IPC_CHANNELS.workspaceWorktreeCreate, {
+          code: 'WORKSPACE_NOT_FOUND',
+          message: `Workspace not found: ${workspaceId}`,
+        }, workspaceId);
+      }
+      
+      // Compute agent index from existing worktrees
+      const existingWorktrees = await listWorktrees(workspace.rootPath, workspaceId);
+      const agentIndex = existingWorktrees.length;
+      
+      // Derive project slug from workspace name
+      const projectSlug = workspace.name.toLowerCase().replace(/[^a-z0-9-]/g, '-').replace(/-+/g, '-');
+      
+      const createOptions = {
+        workspaceId,
+        branchName,
+        namingConfig: {
+          projectSlug,
+          taskSlug,
+          agentIndex,
+        },
+        ...(runBootstrap !== undefined ? { runBootstrap } : {}),
+        ...(envCarryoverAllowlist !== undefined ? { envCarryoverAllowlist } : {}),
+        ...(installDependencies !== undefined ? { installDependencies } : {}),
+      };
+
+      const result = await createWorktree(workspace.rootPath, createOptions);
+      
+      // Emit audit event
+      const auditEvent = buildAuditEvent('workspace.worktree_created', workspaceId, {
+        branchName,
+        taskSlug,
+        label: result.label,
+        worktreePath: result.worktreePath,
+        success: result.success,
+        bootstrapStatus: result.bootstrapStatus,
+        reason,
+      });
+      appendAuditEvent(auditEvent);
+      
+      if (!result.success) {
+        return createErrorResponse(IPC_CHANNELS.workspaceWorktreeCreate, {
+          code: 'WORKTREE_CREATE_FAILED',
+          message: result.error ?? 'Unknown error',
+        }, workspaceId);
+      }
+
+      const refreshedWorktrees = mergePersistedWorktreeMetadata(
+        workspace,
+        await listWorktrees(workspace.rootPath, workspaceId)
+      );
+      const createdWorktrees = refreshedWorktrees.map((worktree) =>
+        worktree.rootPath === result.worktreePath
+          ? {
+              ...worktree,
+              label: result.label,
+              ...(result.bootstrapStatus !== undefined
+                ? { bootstrapStatus: result.bootstrapStatus }
+                : {}),
+              createdAt: new Date().toISOString(),
+            }
+          : worktree
+      );
+
+      const updatedWorkspace: WorkspaceDescriptor = {
+        ...workspace,
+        worktrees: createdWorktrees,
+        updatedAt: new Date().toISOString(),
+      };
+      const workspaceIndex = workspaces.findIndex((entry) => entry.id === workspaceId);
+      if (workspaceIndex >= 0) {
+        workspaces[workspaceIndex] = updatedWorkspace;
+        saveWorkspaces(workspaces);
+      }
+      
+      return createResponse(IPC_CHANNELS.workspaceWorktreeCreate, {
+        success: true,
+        worktreePath: result.worktreePath,
+        label: result.label,
+        bootstrapStatus: result.bootstrapStatus,
+      }, workspaceId);
+    } catch (error) {
+      return createErrorResponse(IPC_CHANNELS.workspaceWorktreeCreate, {
+        code: 'WORKTREE_CREATE_FAILED',
+        message: error instanceof Error ? error.message : 'Unknown error',
+      }, envelope.workspaceId);
+    }
+  });
+
+  // Workspace: Worktree Switch (enhanced with audit)
   ipcMain.handle(IPC_CHANNELS.workspaceWorktreeSwitch, async (_event: IpcMainInvokeEvent, envelope: IpcEnvelope<WorkspaceWorktreeSwitchIpcPayload>) => {
     try {
       const { workspaceId, worktreeId, sessionSubtreeRootSessionId, reason } = envelope.payload;
       
-      console.log(`Worktree switch requested: workspace=${workspaceId}, worktree=${worktreeId}, reason=${reason}`);
+      const workspaces = loadWorkspaces();
+      const workspace = workspaces.find(w => w.id === workspaceId);
+      
+      if (!workspace) {
+        return createErrorResponse(IPC_CHANNELS.workspaceWorktreeSwitch, {
+          code: 'WORKSPACE_NOT_FOUND',
+          message: `Workspace not found: ${workspaceId}`,
+        }, workspaceId);
+      }
+      
+      // Update the workspace's current worktree
+      const updatedWorkspace: WorkspaceDescriptor = {
+        ...workspace,
+        currentWorktreeId: worktreeId,
+        worktrees: (workspace.worktrees ?? []).map((worktree) => ({
+          ...worktree,
+          active: worktree.id === worktreeId,
+        })),
+        updatedAt: new Date().toISOString(),
+      };
+      
+      const idx = workspaces.findIndex(w => w.id === workspaceId);
+      if (idx >= 0) {
+        workspaces[idx] = updatedWorkspace;
+        saveWorkspaces(workspaces);
+      }
+      
+      // Emit audit event for worktree switch
+      const auditEvent = buildAuditEvent('workspace.worktree_switched', workspaceId, {
+        worktreeId,
+        sessionSubtreeRootSessionId,
+        reason,
+        previousWorktreeId: workspace.currentWorktreeId ?? null,
+      }, sessionSubtreeRootSessionId);
+      appendAuditEvent(auditEvent);
       
       return createResponse(IPC_CHANNELS.workspaceWorktreeSwitch, {
         success: true,
@@ -238,6 +455,62 @@ function registerIpcHandlers(): void {
     } catch (error) {
       return createErrorResponse(IPC_CHANNELS.workspaceWorktreeSwitch, {
         code: 'WORKTREE_SWITCH_FAILED',
+        message: error instanceof Error ? error.message : 'Unknown error',
+      }, envelope.workspaceId);
+    }
+  });
+
+  // Workspace: Git Refresh
+  ipcMain.handle(IPC_CHANNELS.workspaceGitRefresh, async (_event: IpcMainInvokeEvent, envelope: IpcEnvelope<WorkspaceGitRefreshIpcPayload>) => {
+    try {
+      const { workspaceId } = envelope.payload;
+      
+      const workspaces = loadWorkspaces();
+      const workspace = workspaces.find(w => w.id === workspaceId);
+      
+      if (!workspace) {
+        return createErrorResponse(IPC_CHANNELS.workspaceGitRefresh, {
+          code: 'WORKSPACE_NOT_FOUND',
+          message: `Workspace not found: ${workspaceId}`,
+        }, workspaceId);
+      }
+      
+      const git = await getGitState(workspace.rootPath);
+      const worktrees = mergePersistedWorktreeMetadata(
+        workspace,
+        await listWorktrees(workspace.rootPath, workspaceId)
+      );
+      
+      const updatedWorkspace: WorkspaceDescriptor = {
+        ...workspace,
+        branchName: git?.branchName,
+        dirty: git?.dirty,
+        git: git ?? undefined,
+        worktrees,
+        updatedAt: new Date().toISOString(),
+      };
+      
+      const idx = workspaces.findIndex(w => w.id === workspaceId);
+      if (idx >= 0) {
+        workspaces[idx] = updatedWorkspace;
+        saveWorkspaces(workspaces);
+      }
+      
+      // Emit audit event
+      const auditEvent = buildAuditEvent('workspace.git_state_refreshed', workspaceId, {
+        branchName: git?.branchName ?? null,
+        dirty: git?.dirty ?? false,
+        headSha: git?.headSha ?? null,
+        worktreeCount: worktrees.length,
+      });
+      appendAuditEvent(auditEvent);
+      
+      return createResponse(IPC_CHANNELS.workspaceGitRefresh, {
+        workspace: updatedWorkspace,
+      }, workspaceId);
+    } catch (error) {
+      return createErrorResponse(IPC_CHANNELS.workspaceGitRefresh, {
+        code: 'GIT_REFRESH_FAILED',
         message: error instanceof Error ? error.message : 'Unknown error',
       }, envelope.workspaceId);
     }
@@ -435,7 +708,7 @@ function registerIpcHandlers(): void {
     try {
       const { event } = envelope.payload;
       
-      console.log('Audit event:', event);
+      appendAuditEvent(event);
       
       return createResponse(IPC_CHANNELS.auditAppend, { success: true }, envelope.workspaceId, envelope.sessionId);
     } catch (error) {

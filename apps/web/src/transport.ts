@@ -200,6 +200,115 @@ export async function loadAgentDefaults(): Promise<unknown> {
   return response.payload;
 }
 
+// --- Git & Worktree operations (capability-aware) ---
+
+/**
+ * Creates a new worktree. Requires desktop git access.
+ * In browser-only mode, this will fail with a clear capability error.
+ */
+export async function createWorktree(params: {
+  workspaceId: string;
+  branchName: string;
+  taskSlug: string;
+  label: string;
+  runBootstrap?: boolean;
+  envCarryoverAllowlist?: string[];
+  installDependencies?: boolean;
+}): Promise<unknown> {
+  const payload: Record<string, unknown> = {
+    workspaceId: params.workspaceId,
+    branchName: params.branchName,
+    taskSlug: params.taskSlug,
+    label: params.label,
+  };
+  if (params.runBootstrap !== undefined) payload['runBootstrap'] = params.runBootstrap;
+  if (params.envCarryoverAllowlist) payload['envCarryoverAllowlist'] = params.envCarryoverAllowlist;
+  if (params.installDependencies !== undefined) payload['installDependencies'] = params.installDependencies;
+
+  const response = await bridgeRequest('takomi:workspace:worktree:create', payload);
+  if (!response.ok) {
+    const err = response.error;
+    if (err?.code === 'CAPABILITY_UNAVAILABLE') {
+      throw new CapabilityUnavailableError(
+        'worktreeCreation',
+        err.message,
+        err.details?.['recommendedAction'] as string | undefined
+      );
+    }
+    throw new Error(err?.message ?? 'Failed to create worktree');
+  }
+  return response.payload;
+}
+
+/**
+ * Switches the active worktree for a session subtree.
+ * Requires desktop git access.
+ */
+export async function switchWorktree(params: {
+  workspaceId: string;
+  worktreeId: string;
+  sessionSubtreeRootSessionId?: string;
+  reason?: string;
+}): Promise<unknown> {
+  const payload: Record<string, unknown> = {
+    workspaceId: params.workspaceId,
+    worktreeId: params.worktreeId,
+  };
+  if (params.sessionSubtreeRootSessionId) payload['sessionSubtreeRootSessionId'] = params.sessionSubtreeRootSessionId;
+  if (params.reason) payload['reason'] = params.reason;
+
+  const response = await bridgeRequest('takomi:workspace:worktree:switch', payload);
+  if (!response.ok) {
+    const err = response.error;
+    if (err?.code === 'CAPABILITY_UNAVAILABLE') {
+      throw new CapabilityUnavailableError(
+        'worktreeSwitching',
+        err.message,
+        err.details?.['recommendedAction'] as string | undefined
+      );
+    }
+    throw new Error(err?.message ?? 'Failed to switch worktree');
+  }
+  return response.payload;
+}
+
+/**
+ * Refreshes git state for a workspace.
+ * Requires desktop git access.
+ */
+export async function refreshGitState(workspaceId: string): Promise<unknown> {
+  const response = await bridgeRequest('takomi:workspace:git:refresh', { workspaceId });
+  if (!response.ok) {
+    const err = response.error;
+    if (err?.code === 'CAPABILITY_UNAVAILABLE') {
+      throw new CapabilityUnavailableError(
+        'gitRefresh',
+        err.message,
+        err.details?.['recommendedAction'] as string | undefined
+      );
+    }
+    throw new Error(err?.message ?? 'Failed to refresh git state');
+  }
+  return response.payload;
+}
+
+/**
+ * Error thrown when a browser operation requires a desktop capability.
+ */
+export class CapabilityUnavailableError extends Error {
+  readonly capability: string;
+  readonly recommendedAction?: string;
+
+  constructor(capability: string, message: string, recommendedAction?: string) {
+    super(message);
+    this.name = 'CapabilityUnavailableError';
+    this.capability = capability;
+    if (recommendedAction !== undefined) {
+      this.recommendedAction = recommendedAction;
+    }
+  }
+}
+
 // --- Event stream ---
 
 export { createBridgeEventStream } from '@takomi/runtime-codex';

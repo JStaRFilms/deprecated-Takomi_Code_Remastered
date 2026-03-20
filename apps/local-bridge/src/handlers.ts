@@ -100,11 +100,58 @@ export function createChannelRouter(wsManager: WebSocketManager): ChannelRouter 
       }, requestId);
     }
 
-    return okResponse(IPC_CHANNELS.workspaceWorktreeSwitch, {
-      success: true,
-      workspaceId,
-      worktreeId,
-      sessionSubtreeRootSessionId: payload['sessionSubtreeRootSessionId'] ?? undefined
+    // Capability-aware: worktree switching is not available via browser bridge
+    return errorResponse(IPC_CHANNELS.workspaceWorktreeSwitch, {
+      code: 'CAPABILITY_UNAVAILABLE',
+      message: 'Git worktree switching requires the desktop app. The browser build does not have access to local git operations.',
+      details: {
+        capability: 'worktreeSwitching',
+        mode: 'unavailable',
+        recommendedAction: 'Use the Electron desktop app to switch worktrees.',
+      }
+    }, requestId);
+  });
+
+  handlers.set(IPC_CHANNELS.workspaceWorktreeCreate, async (payload, requestId) => {
+    const workspaceId = payload['workspaceId'] as string | undefined;
+    const branchName = payload['branchName'] as string | undefined;
+    if (!workspaceId || !branchName) {
+      return errorResponse(IPC_CHANNELS.workspaceWorktreeCreate, {
+        code: 'MISSING_FIELDS',
+        message: 'worktree create requires workspaceId and branchName'
+      }, requestId);
+    }
+
+    // Capability-aware: worktree creation is not available via browser bridge
+    return errorResponse(IPC_CHANNELS.workspaceWorktreeCreate, {
+      code: 'CAPABILITY_UNAVAILABLE',
+      message: 'Git worktree creation requires the desktop app. The browser build does not have access to local git operations.',
+      details: {
+        capability: 'gitAccess',
+        mode: 'unavailable',
+        recommendedAction: 'Use the Electron desktop app to create worktrees.',
+      }
+    }, requestId);
+  });
+
+  handlers.set(IPC_CHANNELS.workspaceGitRefresh, async (payload, requestId) => {
+    const workspaceId = payload['workspaceId'] as string | undefined;
+    if (!workspaceId) {
+      return errorResponse(IPC_CHANNELS.workspaceGitRefresh, {
+        code: 'MISSING_WORKSPACE_ID',
+        message: 'git refresh requires a workspaceId'
+      }, requestId);
+    }
+
+    // Capability-aware: git refresh is not available via browser bridge
+    return errorResponse(IPC_CHANNELS.workspaceGitRefresh, {
+      code: 'CAPABILITY_UNAVAILABLE',
+      message: 'Git state refresh requires the desktop app. The browser build does not have access to local git operations.',
+      details: {
+        capability: 'gitAccess',
+        mode: 'unavailable',
+        recommendedAction: 'Use the Electron desktop app to refresh git state.',
+      }
     }, requestId);
   });
 

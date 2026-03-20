@@ -18,6 +18,7 @@
     "verify:web-local-bridge": "node scripts/verify-web-local-bridge.mjs",
     "verify:persistence": "node --import tsx/esm scripts/verify-persistence.mjs",
     "verify:orchestration-engine": "node --import tsx/esm scripts/verify-orchestration-engine.mjs",
+    "verify:worktree-controls": "node --import tsx/esm scripts/verify-worktree-controls.mjs",
     "lint": "node scripts/lint.mjs",
     "format": "node scripts/format.mjs",
     "verify": "python scripts/vibe-verify.py"

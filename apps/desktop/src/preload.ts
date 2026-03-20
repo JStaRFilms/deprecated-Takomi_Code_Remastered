@@ -15,7 +15,9 @@ import type {
   WorkspaceListIpcPayload,
   WorkspaceOpenIpcPayload,
   WorkspaceStatusIpcPayload,
+  WorkspaceWorktreeCreateIpcPayload,
   WorkspaceWorktreeSwitchIpcPayload,
+  WorkspaceGitRefreshIpcPayload,
   SessionListIpcPayload,
   SessionCreateIpcPayload,
   RuntimeConnectIpcPayload,
@@ -27,6 +29,7 @@ import type {
   WorkspaceDescriptor,
   SessionDescriptor,
   NormalizedRuntimeEvent,
+  WorktreeBootstrapStatus,
 } from '@takomi/contracts';
 
 // Type for IPC invoke responses
@@ -51,12 +54,20 @@ export interface DesktopBridgeApi {
     list: (rootPath?: string) => IpcInvokeResult<{ workspaces: WorkspaceDescriptor[] }>;
     open: (path: string, workspaceId?: string) => IpcInvokeResult<{ workspace: WorkspaceDescriptor }>;
     status: (workspaceId: string) => IpcInvokeResult<{ workspace: WorkspaceDescriptor }>;
+    worktreeCreate: (
+      workspaceId: string,
+      branchName: string,
+      taskSlug: string,
+      label: string,
+      options?: { runBootstrap?: boolean; envCarryoverAllowlist?: string[]; installDependencies?: boolean; reason?: string }
+    ) => IpcInvokeResult<{ success: boolean; worktreePath: string; label: string; bootstrapStatus?: WorktreeBootstrapStatus }>;
     worktreeSwitch: (
       workspaceId: string,
       worktreeId: string,
       sessionSubtreeRootSessionId?: string,
       reason?: string
     ) => IpcInvokeResult<{ success: boolean; workspaceId: string; worktreeId: string }>;
+    gitRefresh: (workspaceId: string) => IpcInvokeResult<{ workspace: WorkspaceDescriptor }>;
   };
   
   // Session operations
@@ -144,8 +155,14 @@ function createDesktopBridgeApi(): DesktopBridgeApi {
   const workspaceStatus = createIpcInvoker<WorkspaceStatusIpcPayload, { workspace: WorkspaceDescriptor }>(
     IPC_CHANNELS.workspaceStatus
   );
+  const workspaceWorktreeCreate = createIpcInvoker<WorkspaceWorktreeCreateIpcPayload, { success: boolean; worktreePath: string; label: string; bootstrapStatus?: WorktreeBootstrapStatus }>(
+    IPC_CHANNELS.workspaceWorktreeCreate
+  );
   const workspaceWorktreeSwitch = createIpcInvoker<WorkspaceWorktreeSwitchIpcPayload, { success: boolean; workspaceId: string; worktreeId: string }>(
     IPC_CHANNELS.workspaceWorktreeSwitch
+  );
+  const workspaceGitRefresh = createIpcInvoker<WorkspaceGitRefreshIpcPayload, { workspace: WorkspaceDescriptor }>(
+    IPC_CHANNELS.workspaceGitRefresh
   );
   
   // Session operations
@@ -211,6 +228,30 @@ function createDesktopBridgeApi(): DesktopBridgeApi {
           workspaceId,
         });
       },
+      worktreeCreate: (
+        workspaceId: string,
+        branchName: string,
+        taskSlug: string,
+        label: string,
+        options?: { runBootstrap?: boolean; envCarryoverAllowlist?: string[]; installDependencies?: boolean; reason?: string }
+      ) => {
+        const payload: WorkspaceWorktreeCreateIpcPayload = {
+          workspaceId,
+          branchName,
+          taskSlug,
+          label,
+          ...(options?.runBootstrap !== undefined ? { runBootstrap: options.runBootstrap } : {}),
+          ...(options?.envCarryoverAllowlist ? { envCarryoverAllowlist: options.envCarryoverAllowlist } : {}),
+          ...(options?.installDependencies !== undefined ? { installDependencies: options.installDependencies } : {}),
+          ...(options?.reason ? { reason: options.reason } : {}),
+        };
+        return workspaceWorktreeCreate({
+          id: `env-${Date.now()}`,
+          channel: IPC_CHANNELS.workspaceWorktreeCreate,
+          payload,
+          workspaceId,
+        });
+      },
       worktreeSwitch: (workspaceId: string, worktreeId: string, sessionSubtreeRootSessionId?: string, reason?: string) => {
         const payload: WorkspaceWorktreeSwitchIpcPayload = {
           workspaceId,
@@ -222,6 +263,14 @@ function createDesktopBridgeApi(): DesktopBridgeApi {
           id: `env-${Date.now()}`,
           channel: IPC_CHANNELS.workspaceWorktreeSwitch,
           payload,
+          workspaceId,
+        });
+      },
+      gitRefresh: (workspaceId: string) => {
+        return workspaceGitRefresh({
+          id: `env-${Date.now()}`,
+          channel: IPC_CHANNELS.workspaceGitRefresh,
+          payload: { workspaceId },
           workspaceId,
         });
       },

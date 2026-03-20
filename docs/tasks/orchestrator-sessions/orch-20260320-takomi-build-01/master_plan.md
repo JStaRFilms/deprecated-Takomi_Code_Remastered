@@ -128,7 +128,7 @@ When the user comes back with completed work, use this exact control pattern:
 | 7 | `07_web-local-bridge.task.md` | Approved | `mode-code` / `vibe-build` | `takomi`, `monorepo-management`, `nextjs-standards` | 2 | `pnpm typecheck` and `pnpm verify:web-local-bridge` passed after review fixes for payload parity, WebSocket delivery, CORS, bridge defaults loading, and port overrides | Tasks 08 and 12 remain valid; Task 09 still waits on 08 |
 | 8 | `08_persistence-audit-restore.task.md` | Approved | `mode-code` / `vibe-build` | `takomi`, `nextjs-standards` | 2, 3 | `pnpm typecheck` and `pnpm verify:persistence` passed after review fixes for runnable verification wiring and task-record cleanup | Tasks 09 and 12 are now valid |
 | 9 | `09_orchestration-engine.task.md` | Approved | `mode-code` / `vibe-build` | `takomi`, `nextjs-standards` | 2, 5, 6, 7, 8 | `pnpm typecheck` and `pnpm verify:orchestration-engine` passed after review fixes for persisted lineage metadata, reload restore, background run parenting, and Takomi mode parsing | Tasks 10, 11, and 12 are now valid |
-| 10 | `10_git-worktree-controls.task.md` | Pending | `mode-code` / `vibe-build` | `takomi`, `nextjs-standards` | 6, 7, 8, 9 | Not started | Review |
+| 10 | `10_git-worktree-controls.task.md` | Approved | `mode-code` / `vibe-build` | `takomi`, `nextjs-standards` | 6, 7, 8, 9 | `pnpm typecheck` and `pnpm verify:worktree-controls` passed after review fixes for Windows bootstrap execution, persisted worktree metadata, audit-event storage, and path normalization | Tasks 11 and 12 remain valid; Task 13 still waits on 11 and 12 |
 | 11 | `11_interventions-and-recovery.task.md` | Pending | `mode-code` / `vibe-build` | `takomi`, `nextjs-standards` | 5, 6, 7, 9 | Not started | Review |
 | 12 | `12_runtime-settings-billing-bags.task.md` | Pending | `mode-code` / `vibe-build` | `takomi`, `frontend-design`, `nextjs-standards` | 4, 8 | Not started | Review |
 | 13 | `13_integration-hardening.task.md` | Pending | `mode-review` / `review_code` | `takomi`, `webapp-testing`, `jstar-reviewer`, `security-audit` | 3-12 | Not started | Review |
@@ -163,7 +163,7 @@ When the user comes back with completed work, use this exact control pattern:
 - [x] Task 7 reviewed and approved
 - [x] Task 8 reviewed and approved
 - [x] Task 9 reviewed and approved
-- [ ] Task 10 reviewed and approved
+- [x] Task 10 reviewed and approved
 - [ ] Task 11 reviewed and approved
 - [ ] Task 12 reviewed and approved
 - [ ] Task 13 reviewed and approved
@@ -185,18 +185,18 @@ When the user comes back with completed work, use this exact control pattern:
 - 2026-03-20: Task `07_web-local-bridge.task.md` required direct review fixes for HTTP payload parity with desktop IPC, real `.agent/Takomi-Agents` default loading, WebSocket runtime delivery, valid CORS behavior, honest capability flags, dynamic dev-port overrides, and executable bridge verification before approval.
 - 2026-03-20: Task `08_persistence-audit-restore.task.md` required direct review fixes for repo-level verification wiring (`pnpm verify:persistence`) and task-record cleanup after the builder moved the packet to `completed/` while it still reported `Pending`.
 - 2026-03-20: Task `09_orchestration-engine.task.md` required direct review fixes for persisted session metadata needed to restore lineage after reload, background child-parent correlation on restore, repo-level verification wiring (`pnpm verify:orchestration-engine`), and agent-definition parsing that matches the real `.agent/Takomi-Agents/custom_modes.yaml` group format.
+- 2026-03-20: Task `10_git-worktree-controls.task.md` required direct review fixes for Windows-safe dependency bootstrap execution, exact optional payload construction, persisted audit-event storage, worktree metadata retention across git refresh, repo-level verification wiring (`pnpm verify:worktree-controls`), and path normalization between Windows filesystem paths and `git worktree list --porcelain` output.
 
 ## Next Tasks Ready To Spawn
 
-1. `10_git-worktree-controls.task.md`
-2. `11_interventions-and-recovery.task.md`
-3. `12_runtime-settings-billing-bags.task.md`
+1. `11_interventions-and-recovery.task.md`
+2. `12_runtime-settings-billing-bags.task.md`
 
 ## Current Review Focus
 
-- Task `09` is approved and orchestration state ownership is no longer blocking follow-on work
-- Tasks `10`, `11`, and `12` are the active green-lit queue
-- Task `13` remains locked until Tasks `10`, `11`, and `12` are also approved
+- Tasks `09` and `10` are approved and the workspace/worktree boundary layer is no longer blocking follow-on work
+- Tasks `11` and `12` are the active green-lit queue
+- Task `13` remains locked until Tasks `11` and `12` are also approved
 
 ## Acceptance Snapshot
 
