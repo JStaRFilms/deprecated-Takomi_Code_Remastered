@@ -123,7 +123,7 @@ When the user comes back with completed work, use this exact control pattern:
 | 2 | `02_contracts-and-schema-lock.task.md` | Approved | `mode-code` / `vibe-build` | `takomi`, `nextjs-standards` | 1 | Package typecheck and runtime schema validation passed | Task 03, plus the parallel 04/06/07 window |
 | 3 | `03_session-bundle-interop.task.md` | Approved | `mode-code` / `vibe-build` | `takomi`, `nextjs-standards` | 2 | `pnpm typecheck` and session-bundle verification passed | Task 08 unlocked |
 | 4 | `04_shared-v6-shell.task.md` | Approved | `mode-code` / `vibe-build` | `takomi`, `frontend-design`, `nextjs-standards` | 1, 2 | Shared v6 shell now renders in both `dev:web` and `dev:desktop`, and workspace typecheck passes through build-mode verification | Tasks 05 and 12 |
-| 5 | `05_transcript-and-runtime-state.task.md` | Pending | `mode-code` / `vibe-build` | `takomi`, `nextjs-standards` | 2, 4 | Not started | Review |
+| 5 | `05_transcript-and-runtime-state.task.md` | Approved | `mode-code` / `vibe-build` | `takomi`, `nextjs-standards` | 2, 4 | `pnpm typecheck`, `pnpm verify:transcript-runtime-state`, and live paused/resume shell sanity checks passed after review fixes | Tasks 06, 07, 08, 12 remain valid; Task 09 still waits on 06, 07, and 08 |
 | 6 | `06_electron-runtime-and-ipc.task.md` | Pending | `mode-code` / `vibe-build` | `takomi`, `nextjs-standards` | 2 | Not started | Review |
 | 7 | `07_web-local-bridge.task.md` | Pending | `mode-code` / `vibe-build` | `takomi`, `monorepo-management`, `nextjs-standards` | 2 | Not started | Review |
 | 8 | `08_persistence-audit-restore.task.md` | Pending | `mode-code` / `vibe-build` | `takomi`, `nextjs-standards` | 2, 3 | Not started | Review |
@@ -157,8 +157,8 @@ When the user comes back with completed work, use this exact control pattern:
 - [x] Task 1 reviewed and approved
 - [x] Task 2 reviewed and approved
 - [x] Task 3 reviewed and approved
-- [ ] Task 4 reviewed and approved
-- [ ] Task 5 reviewed and approved
+- [x] Task 4 reviewed and approved
+- [x] Task 5 reviewed and approved
 - [ ] Task 6 reviewed and approved
 - [ ] Task 7 reviewed and approved
 - [ ] Task 8 reviewed and approved
@@ -180,20 +180,20 @@ When the user comes back with completed work, use this exact control pattern:
 ## Blockers Log
 
 - 2026-03-20: Task `04_shared-v6-shell.task.md` initially failed review, then was repaired and approved in the same review cycle. The final accepted state serves the shared v6 shell from both live mounts and passes `pnpm typecheck`.
+- 2026-03-20: Task `05_transcript-and-runtime-state.task.md` required direct review fixes for render-block coverage, transcript-store windowing, runtime presentation mapping, and app-level TypeScript project references before approval.
 
 ## Next Tasks Ready To Spawn
 
-1. `05_transcript-and-runtime-state.task.md`
-2. `06_electron-runtime-and-ipc.task.md`
-3. `07_web-local-bridge.task.md`
-4. `08_persistence-audit-restore.task.md`
-5. `12_runtime-settings-billing-bags.task.md`
+1. `06_electron-runtime-and-ipc.task.md`
+2. `07_web-local-bridge.task.md`
+3. `08_persistence-audit-restore.task.md`
+4. `12_runtime-settings-billing-bags.task.md`
 
 ## Current Review Focus
 
-- No task is currently blocked by Task `04`
-- Tasks `05` and `12` are now unlocked by the Task `04` approval
-- Tasks `06`, `07`, and `08` remain independently available under the existing parallel window
+- Task `05` is approved and no longer blocking downstream transcript-state work
+- Tasks `06`, `07`, `08`, and `12` are the active green-lit queue
+- Task `09` remains locked until Tasks `06`, `07`, and `08` are also approved
 
 ## Acceptance Snapshot
 

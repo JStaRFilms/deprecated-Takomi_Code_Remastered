@@ -1,5 +1,6 @@
 export * from './constants.js';
 export * from './workspace.js';
+export * from './transcript-render.js';
 export * from './session.js';
 export * from './session-bundle.js';
 export * from './task-graph.js';

@@ -5,6 +5,10 @@ import type {
   WorkspaceDescriptor
 } from '@takomi/contracts';
 
+export * from './transcript-materializer.js';
+export * from './transcript-store.js';
+export * from './test-fixtures.js';
+
 export interface OrchestrationGraph {
   readonly workspace: WorkspaceDescriptor;
   readonly rootSessionId: string;

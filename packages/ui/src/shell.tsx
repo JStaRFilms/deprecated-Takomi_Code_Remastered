@@ -1,5 +1,11 @@
 import type { ReactElement } from 'react';
-import type { SessionDescriptor, TranscriptPart, WorkspaceDescriptor } from '@takomi/contracts';
+import type {
+  SessionDescriptor,
+  SessionStatus,
+  TranscriptPart,
+  TranscriptRenderBlock,
+  WorkspaceDescriptor,
+} from '@takomi/contracts';
 import type { ThemeMode, ThemeTokens } from './theme';
 import { getTheme } from './tokens';
 import { PrimaryRail } from './components/PrimaryRail';
@@ -13,7 +19,11 @@ export interface AppShellProps {
   readonly workspace: WorkspaceDescriptor;
   readonly sessions: readonly SessionDescriptor[];
   readonly transcript?: readonly TranscriptPart[];
+  readonly transcriptBlocks?: readonly TranscriptRenderBlock[] | undefined;
   readonly activeSessionId?: string | null;
+  readonly runStatus?: SessionStatus | undefined;
+  readonly composerMode?: 'send' | 'stop' | 'resume' | undefined;
+  readonly activityLabel?: string | null | undefined;
   readonly headline?: string;
   readonly themeMode?: ThemeMode;
   /** Collapse sidebars for narrow viewports */
@@ -29,7 +39,11 @@ export function AppShell({
   workspace,
   sessions,
   transcript = [],
+  transcriptBlocks,
   activeSessionId = null,
+  runStatus,
+  composerMode,
+  activityLabel,
   headline: _headline,
   themeMode = 'dark',
   compactMode = false,
@@ -41,6 +55,21 @@ export function AppShell({
     : sessions[0] ?? null;
 
   const resolvedActiveId = activeSession?.id ?? null;
+  const resolvedRunStatus = runStatus ?? activeSession?.status ?? 'idle';
+  const resolvedComposerMode =
+    composerMode ??
+    (resolvedRunStatus === 'running'
+      ? 'stop'
+      : resolvedRunStatus === 'paused'
+        ? 'resume'
+        : 'send');
+  const resolvedActivityLabel =
+    activityLabel ??
+    (resolvedRunStatus === 'running'
+      ? 'Takomi is actively processing steps in the background...'
+      : resolvedRunStatus === 'paused'
+        ? 'Execution is paused pending user approval or action.'
+        : 'Waiting for Takomi output.');
 
   return (
     <div
@@ -90,20 +119,21 @@ export function AppShell({
           projectName={workspace.name}
           branchName={workspace.branchName ?? 'main'}
           workspaceShortId={workspace.id}
-          engineStatus={activeSession?.status === 'running' ? 'running' : 'idle'}
+          engineStatus={resolvedRunStatus}
         />
 
         <div style={{ flex: 1, position: 'relative', overflow: 'hidden' }}>
           <TranscriptPane
             theme={theme}
             parts={transcript}
+            blocks={transcriptBlocks}
             sessionName={activeSession?.name ?? 'New Session'}
           />
 
           <FloatingComposer
             theme={theme}
-            mode={activeSession?.status === 'running' ? 'stop' : activeSession?.status === 'paused' ? 'resume' : 'send'}
-            disabled={activeSession?.status === 'running'}
+            mode={resolvedComposerMode}
+            disabled={resolvedComposerMode === 'stop'}
           />
         </div>
       </div>
@@ -112,14 +142,8 @@ export function AppShell({
       <Inspector
         theme={theme}
         sessionName={activeSession?.name ?? 'No active session'}
-        runStatus={activeSession?.status ?? 'idle'}
-        runDescription={
-          activeSession?.status === 'running'
-            ? 'Takomi is actively processing steps in the background…'
-            : activeSession?.status === 'paused'
-              ? 'Execution is paused pending user approval or action.'
-              : 'Waiting for Takomi output.'
-        }
+        runStatus={resolvedRunStatus}
+        runDescription={resolvedActivityLabel}
         collapsed={compactMode}
       />
     </div>

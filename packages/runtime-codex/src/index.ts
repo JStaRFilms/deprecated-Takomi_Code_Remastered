@@ -1,5 +1,7 @@
 import type { RuntimeEventEnvelope, RuntimeTransport } from '@takomi/contracts';
 
+export * from './state-map.js';
+
 export interface RuntimeSessionRequest {
   readonly workspaceId: string;
   readonly projectId: string;

@@ -1,7 +1,7 @@
 # Orchestrator Summary
 
 **Session ID:** `orch-20260320-takomi-build-01`  
-**Status:** Review-gated orchestration manager active, Tasks 01 through 04 approved  
+**Status:** Review-gated orchestration manager active, Tasks 01 through 05 approved  
 **Mode:** `mode-orchestrator`
 
 ## Operating Mode
@@ -21,7 +21,7 @@ This session now acts as the review gatekeeper:
 | 02 Contracts and schema lock | Approved | Shared contracts, runtime schemas, and bridge payloads locked |
 | 03 Session bundle interop | Approved | Bundle contract and import/export helpers verified |
 | 04 Shared v6 shell | Approved | Shared v6 workspace shell is now rendering in both live mounts with mock data and passing verification |
-| 05 Transcript and runtime state | Pending | Waiting on the now-approved Task 04 to be delegated |
+| 05 Transcript and runtime state | Approved | Transcript blocks, runtime presentation state, and windowed store behavior verified and patched during review |
 | 06 Electron runtime and IPC | Pending | Waiting on Task 02 |
 | 07 Web local bridge | Pending | Waiting on Task 02 |
 | 08 Persistence, audit, restore | Pending | Waiting on Tasks 02 and 03 |
@@ -69,12 +69,19 @@ Task 04 review passed after direct fixes for:
 - root `pnpm typecheck` upgrade to real workspace build-mode verification
 - entrypoint cleanup in `apps/web` and `apps/desktop`
 
+Task 05 review passed after direct fixes for:
+
+- richer render-block coverage across plan, command, file-change, intervention, completion, artifact, and status shapes
+- a session-scoped transcript store with window metadata for large-thread readiness
+- runtime presentation mapping so the shared shell reflects paused/resume and activity states from normalized events
+- app bootstraps and TypeScript project references so the runtime-state package is consumed correctly by both web and desktop mounts
+- executable verification via `pnpm verify:transcript-runtime-state`
+
 ## Current Gate
 
-- Task `04` is approved
-- Tasks `05` and `12` are now unlocked
-- Tasks `06` and `07` remain valid in the parallel window from Task `02`
-- Task `08` remains valid because Task `03` is approved
+- Task `05` is approved
+- Tasks `06`, `07`, `08`, and `12` are the active green-lit queue
+- Task `09` is still blocked until `06`, `07`, and `08` are also approved
 
 ## Risks And Blockers
 
@@ -82,4 +89,4 @@ Task 04 review passed after direct fixes for:
 
 ## Recommended Next Wave
 
-Next best delegation options are `05_transcript-and-runtime-state.task.md`, `06_electron-runtime-and-ipc.task.md`, `07_web-local-bridge.task.md`, `08_persistence-audit-restore.task.md`, and `12_runtime-settings-billing-bags.task.md`. Task `05` is the most direct continuation of the shell work.
+Next best delegation options are `06_electron-runtime-and-ipc.task.md`, `07_web-local-bridge.task.md`, `08_persistence-audit-restore.task.md`, and `12_runtime-settings-billing-bags.task.md`. Task `06` is the most direct path toward unlocking the orchestration engine gate.

@@ -8,6 +8,8 @@
   },
   "references": [
     { "path": "../../packages/contracts" },
+    { "path": "../../packages/orchestration" },
+    { "path": "../../packages/runtime-codex" },
     { "path": "../../packages/ui" }
   ],
   "include": ["src/**/*.ts", "src/**/*.tsx"],

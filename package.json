@@ -13,6 +13,7 @@
     "typecheck": "node scripts/typecheck.mjs",
     "verify:contracts": "node scripts/verify-contracts.mjs",
     "verify:session-bundle": "node scripts/verify-session-bundle.mjs",
+    "verify:transcript-runtime-state": "node scripts/verify-transcript-runtime-state.mjs",
     "lint": "node scripts/lint.mjs",
     "format": "node scripts/format.mjs",
     "verify": "python scripts/vibe-verify.py"
