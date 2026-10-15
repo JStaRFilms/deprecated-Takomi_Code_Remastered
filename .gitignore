@@ -1,3 +1,6 @@
+# Local account settings export
+/.agent/Takomi-Agents/kilo-code-settings.json
+
 # --- System ---
 .DS_Store
 Thumbs.db
